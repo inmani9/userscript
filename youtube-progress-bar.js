@@ -32,9 +32,8 @@
     if (!player) return;
     observer.disconnect();
     player.appendChild(bar); // append progress bar below video
-    console.log('youtube-progress-always:', v);
     video.addEventListener('timeupdate', e => {
-      progress.style.width = Math.round(v.currentTime) / v.duration * 100 + '%';
+      progress.style.width = Math.round(video.currentTime) / video.duration * 100 + '%';
     }, { passive: true });
   })).observe(document, { subtree: true, childList: true });
 })();
