@@ -1,7 +1,8 @@
 // ==UserScript==
 // @name         show progress bar below Youtube player
 // @namespace    https://github.com/inmani9
-// @downloadURL  https://github.com/inmani9/userscript/blob/main/youtube-progress-bar.js
+// @downloadURL  https://raw.githubusercontent.com/inmani9/userscript/refs/heads/main/youtube-progress-bar.js
+// @description  유튜브 플레이어 아래쪽에 진행바를 보여준다.
 // @version      0.1
 // @author       BJ
 // @match        https://www.youtube.com/*
