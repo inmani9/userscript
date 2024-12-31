@@ -1,5 +1,8 @@
 // ==UserScript==
-// @name        Magnet link for transmission
+// @name       	Magnet link for transmission
+// @encoding    utf-8
+// @namespace   https://github.com/inmani9
+// @downloadURL https://raw.githubusercontent.com/inmani9/userscript/main/magnet_link.js
 // @match       https://www.lamu.city/bbs/board.php*
 // @match       https://gog-games.com/
 // @match       https://torrentzota*.com/torrent/*
