@@ -5,7 +5,7 @@
 // @downloadURL https://raw.githubusercontent.com/inmani9/userscript/main/magnet_link.js
 // @match       https://www.lamu.city/bbs/board.php*
 // @match       https://gog-games.com/
-// @match       https://torrentzota*.com/torrent/*
+// @match       https://torrent*/*
 // @grant       GM_xmlhttpRequest
 // @grant       GM_addStyle
 // @grant       GM_getValue
