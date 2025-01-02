@@ -10,7 +10,7 @@
 // @grant       GM_addStyle
 // @grant       GM_getValue
 // @grant       GM_setValue
-// @version     1.0
+// @version     1.01
 // @author      BJ
 // @description     show button of magnet link for transmission
 // @description:ko  마그넷 링크를 트랜스미션에 연결하는 버튼을 생성
