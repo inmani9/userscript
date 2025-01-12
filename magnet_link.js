@@ -268,6 +268,7 @@ function getMagnetLinks() {
     }
   });
 
+  console.log("[MAGNET-LINK] look-up");
   getMagnetLinks();
   [...document.getElementsByClassName("view-content")].forEach(
     (element) => {
