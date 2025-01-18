@@ -1,41 +1,38 @@
 // ==UserScript==
-// @name        Open link using dragging
-// @encoding    utf-8
-// @namespace   https://github.com/inmani9
-// @downloadURL https://raw.githubusercontent.com/inmani9/userscript/main/drag_link.js
-// @match       http://*/*
-// @match       https://*/*
-// @version     1.00
-// @author      BJ
-// @description     Open link based on drag direction
-// @description:ko  링크를 드래그해서 오픈하는 스크립트
+// @name         Open link using dragging
+// @namespace    Violentmonkey Scripts
+// @version      0.8
+// @description  Open link based on drag direction
+// @match        http://*/*
+// @match        https://*/*
+// @license      MIT
+// @icon         https://cdn-icons-png.freepik.com/512/96/96958.png
+// @downloadURL https://update.greasyfork.org/scripts/501187/Drag%20link%20to%20Copy.user.js
+// @updateURL https://update.greasyfork.org/scripts/501187/Drag%20link%20to%20Copy.meta.js
 // ==/UserScript==
-
-(function() {
+https://www.youtube.com/watch?v=uIY1yb-lTYk&list=PLYKWtOaS8ucEzUX9NhOFqrJpZsJXxYhkE
+(function() {https://www.youtube.com/watch?v=uIY1yb-lTYk&list=PLYKWtOaS8ucEzUX9NhOFqrJpZsJXxYhkE
   'use strict';
   let startX, startY, draggable = false;
-  let found_link = '';
+  let found_link = null;
+  let selected_text = null;
   let notificationTimeout;
 
   document.addEventListener('dragstart', (e) => { find_object(e); });
-  document.addEventListener('mousedown', (e) => { find_object(e); });
+  document.addEventListener('mousedown', (e) => { if (e.button == 0) find_object(e); });
 
-  document.addEventListener('mousemove', () => {
-    if (found_link.length > 0)
-      draggable = true;
-    else
-      draggable = false;
-  });
+  document.addEventListener('dragleave', (e) => { draggable = false; });
+  document.addEventListener('dragenter', (e) => { draggable = true; });
 
   document.addEventListener('dragend', (e) => { execute_command(e); });
   document.addEventListener('mouseup', (e) => { execute_command(e); });
 
   function find_object(e) {
     startX = e.clientX;
-    startY = e.clientY;
+    startY = e.clientY;https://www.youtube.com/watch?v=FumHvm-nEP0&pp=ygUh7IOk7J2064udIOyVpOuTnCDrjZQg64uk7YGs64uI7Iqk
     let element = e.target;
     while (element && element !== document.body) {
-      console.log("LINK:"+element.outerHTML);
+      console.log("CURRENT TAG: "+element.tagName);
       if (element.tagName.toLowerCase() === 'a') {
         //showNotification('FOUND:'+element.href);
         console.log("FOUND LINK: " + element.href);
@@ -45,6 +42,15 @@
       }
       element = element.parentNode;
     }
+
+    if (element && element === document.body) {
+      console.log("NOT FOUND LINK");
+      if (document.getSelection() && document.getSelection().toString().length > 0) {
+        selected_text = document.getSelection().toString();
+        console.log("SELECTION TEXT: " + selected_text);
+        draggable = true;
+      }
+    }
   }
 
   function execute_command(e) {
@@ -52,36 +58,34 @@
       const deltaX = e.clientX - startX;
       const deltaY = e.clientY - startY;
       if (Math.abs(deltaX) > 60 || Math.abs(deltaY) > 60) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
         if (Math.abs(deltaX) > Math.abs(deltaY)) {
           // Horizontal movement
-          if (deltaX > 0) {
+          if (found_link)
             open_link(found_link);
-          } else {
-            open_link(found_link);
-          }
+          else
+            open_google(selected_text);
         } else {
-          if (deltaY > 0) {
+          if (found_link)
             open_link(found_link);
-          } else {
-            open_link(found_link);
-          }
+          else
+            open_google(selected_text);
         }
       }
     }
     draggable = false;
-    found_link = '';
+    found_link = null;
+    selected_text = null;
   }
 
   function open_link(url) {
-    //const url = GM.getValue('found_link', '');
-    showNotification('Open: ' + url);
     if (url.length > 0) {
       window.open(url);
-      //showNotification('MOUSE UP:'+url);
     }
+  }
+
+  function open_google(text) {
+    const url = 'https://www.google.com/search?q='+ text + '&newwindow=1';
+    window.open(url);
   }
 
   function showNotification(message) {
