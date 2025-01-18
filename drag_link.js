@@ -10,8 +10,8 @@
 // @downloadURL https://update.greasyfork.org/scripts/501187/Drag%20link%20to%20Copy.user.js
 // @updateURL https://update.greasyfork.org/scripts/501187/Drag%20link%20to%20Copy.meta.js
 // ==/UserScript==
-https://www.youtube.com/watch?v=uIY1yb-lTYk&list=PLYKWtOaS8ucEzUX9NhOFqrJpZsJXxYhkE
-(function() {https://www.youtube.com/watch?v=uIY1yb-lTYk&list=PLYKWtOaS8ucEzUX9NhOFqrJpZsJXxYhkE
+
+(function() {
   'use strict';
   let startX, startY, draggable = false;
   let found_link = null;
