@@ -45,7 +45,8 @@
 
   document.addEventListener('dragend', (e) => {
     console.log('{MOUSE POSITION} X: ' + e.clientX + ', Y: ' + e.clientY);
-    if (dragging && e.clientX > 0 && e.clientY > 0) {
+    const drag_cancel = e.dataTransfer.mozUserCancelled === true;
+    if (dragging && e.clientX > 0 && e.clientY > 0 && !drag_cancel) {
       do_action(e);
     }
     clear();
