@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Open link using dragging
 // @namespace    Violentmonkey Scripts
-// @version      0.6
+// @version      0.8
 // @description  Open link based on drag direction
 // @match        http://*/*
 // @match        https://*/*
@@ -13,19 +13,64 @@
 
 (function() {
   'use strict';
-  let startX, startY, draggable = false;
+  let startX, startY;
+  let dragging = false;
   let found_link = null;
   let selected_text = null;
   let notificationTimeout;
 
+  function clear() {
+    dragging = false;
+    found_link = null;
+    selected_text = null;
+  }
+
   document.addEventListener('dragstart', (e) => { find_element(e); });
-  document.addEventListener('mousedown', (e) => { if (e.button == 0) find_element(e); });
+  document.addEventListener('mousedown', (e) => { if (e.button == 0) find_link(e); });
 
-  //document.addEventListener('dragleave', (e) => { draggable = false; });
-  //document.addEventListener('dragenter', (e) => { draggable = true; });
+  /*
+  document.body.addEventListener('mousemove', (e) => {
+    if (found_link)
+      showNotification('Link: ' + found_link);
+    else if (selected_text)
+      showNotification('Google: ' + selected_text);
+  });
+  document.body.addEventListener('drag', (e) => {
+    if (found_link)
+      showNotification('Link: ' + found_link);
+    else if (selected_text)
+      showNotification('Google: ' + selected_text);
+  });
+  */
 
-  document.addEventListener('dragend', (e) => { do_action(e); });
-  document.addEventListener('mouseup', (e) => { do_action(e); });
+  document.addEventListener('dragend', (e) => {
+    console.log('{MOUSE POSITION} X: ' + e.clientX + ', Y: ' + e.clientY);
+    if (dragging && e.clientX > 0 && e.clientY > 0) {
+      do_action(e);
+    }
+    clear();
+  });
+  document.addEventListener('mouseup', (e) => {
+    do_action(e);
+    clear();
+  });
+
+  function find_link(e) {
+    startX = e.clientX;
+    startY = e.clientY;
+    let element = e.target;
+    while (element && element !== document.body) {
+      console.log("CURRENT TAG: "+element.tagName);
+      if (element.tagName.toLowerCase() === 'a') {
+        found_link = element.href;
+        showNotification('LINK: ' + found_link);
+        dragging = true;
+        element.dragStart(e.nativeEvent);
+        break;
+      }
+      element = element.parentNode;
+    }
+  }
 
   function find_element(e) {
     startX = e.clientX;
@@ -34,10 +79,9 @@
     while (element && element !== document.body) {
       console.log("CURRENT TAG: "+element.tagName);
       if (element.tagName.toLowerCase() === 'a') {
-        //showNotification('FOUND:'+element.href);
-        console.log("FOUND LINK: " + element.href);
         found_link = element.href;
-        draggable = true;
+        showNotification('LINK: ' + found_link);
+        dragging = true;
         break;
       }
       element = element.parentNode;
@@ -47,34 +91,29 @@
       console.log("NOT FOUND LINK");
       if (document.getSelection() && document.getSelection().toString().length > 0) {
         selected_text = document.getSelection().toString();
-        console.log("SELECTION TEXT: " + selected_text);
-        draggable = true;
+        showNotification('Google: ' + selected_text);
+        dragging = true;
       }
     }
   }
 
   function do_action(e) {
-    if (draggable) {
-      const deltaX = e.clientX - startX;
-      const deltaY = e.clientY - startY;
-      if (Math.abs(deltaX) > 60 || Math.abs(deltaY) > 60) {
-        if (Math.abs(deltaX) > Math.abs(deltaY)) {
-          // Horizontal movement
-          if (found_link)
-            open_link(found_link);
-          else
-            open_google(selected_text);
-        } else {
-          if (found_link)
-            open_link(found_link);
-          else
-            open_google(selected_text);
-        }
+    const deltaX = e.clientX - startX;
+    const deltaY = e.clientY - startY;
+    if (Math.abs(deltaX) > 60 || Math.abs(deltaY) > 60) {
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        // Horizontal movement
+        if (found_link)
+          open_link(found_link);
+        else
+          open_google(selected_text);
+      } else {
+        if (found_link)
+          open_link(found_link);
+        else
+          open_google(selected_text);
       }
     }
-    draggable = false;
-    found_link = null;
-    selected_text = null;
   }
 
   function open_link(url) {
@@ -84,7 +123,7 @@
   }
 
   function open_google(text) {
-    const url = 'https://www.google.com/search?q='+ text + '&newwindow=1';
+    const url = 'https://www.google.com/search?q='+ encodeURIComponent(text) + '&newwindow=1';
     window.open(url);
   }
 
