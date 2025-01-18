@@ -29,7 +29,7 @@ https://www.youtube.com/watch?v=uIY1yb-lTYk&list=PLYKWtOaS8ucEzUX9NhOFqrJpZsJXxY
 
   function find_object(e) {
     startX = e.clientX;
-    startY = e.clientY;https://www.youtube.com/watch?v=FumHvm-nEP0&pp=ygUh7IOk7J2064udIOyVpOuTnCDrjZQg64uk7YGs64uI7Iqk
+    startY = e.clientY;
     let element = e.target;
     while (element && element !== document.body) {
       console.log("CURRENT TAG: "+element.tagName);
