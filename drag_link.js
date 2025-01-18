@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Open link using dragging
 // @namespace    Violentmonkey Scripts
-// @version      0.8
+// @version      0.6
 // @description  Open link based on drag direction
 // @match        http://*/*
 // @match        https://*/*
@@ -18,16 +18,16 @@
   let selected_text = null;
   let notificationTimeout;
 
-  document.addEventListener('dragstart', (e) => { find_object(e); });
-  document.addEventListener('mousedown', (e) => { if (e.button == 0) find_object(e); });
+  document.addEventListener('dragstart', (e) => { find_element(e); });
+  document.addEventListener('mousedown', (e) => { if (e.button == 0) find_element(e); });
 
   //document.addEventListener('dragleave', (e) => { draggable = false; });
   //document.addEventListener('dragenter', (e) => { draggable = true; });
 
-  document.addEventListener('dragend', (e) => { execute_command(e); });
-  document.addEventListener('mouseup', (e) => { execute_command(e); });
+  document.addEventListener('dragend', (e) => { do_action(e); });
+  document.addEventListener('mouseup', (e) => { do_action(e); });
 
-  function find_object(e) {
+  function find_element(e) {
     startX = e.clientX;
     startY = e.clientY;
     let element = e.target;
@@ -53,7 +53,7 @@
     }
   }
 
-  function execute_command(e) {
+  function do_action(e) {
     if (draggable) {
       const deltaX = e.clientX - startX;
       const deltaY = e.clientY - startY;
