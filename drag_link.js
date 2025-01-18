@@ -21,8 +21,8 @@ https://www.youtube.com/watch?v=uIY1yb-lTYk&list=PLYKWtOaS8ucEzUX9NhOFqrJpZsJXxY
   document.addEventListener('dragstart', (e) => { find_object(e); });
   document.addEventListener('mousedown', (e) => { if (e.button == 0) find_object(e); });
 
-  document.addEventListener('dragleave', (e) => { draggable = false; });
-  document.addEventListener('dragenter', (e) => { draggable = true; });
+  //document.addEventListener('dragleave', (e) => { draggable = false; });
+  //document.addEventListener('dragenter', (e) => { draggable = true; });
 
   document.addEventListener('dragend', (e) => { execute_command(e); });
   document.addEventListener('mouseup', (e) => { execute_command(e); });
