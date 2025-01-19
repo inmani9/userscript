@@ -124,8 +124,10 @@
   }
 
   function open_google(text) {
-    const url = 'https://www.google.com/search?q='+ encodeURIComponent(text) + '&newwindow=1';
-    window.open(url);
+    if (text != null && text.length > 0) {
+      const url = 'https://www.google.com/search?q='+ encodeURIComponent(text) + '&newwindow=1';
+      window.open(url);
+    }
   }
 
   function showNotification(message) {
