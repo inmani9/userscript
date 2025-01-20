@@ -60,7 +60,7 @@
     startX = e.clientX;
     startY = e.clientY;
     let element = e.target;
-    while (element && element !== document.body) {
+    while (element && element !== document.body && element.tagName) {
       console.log("CURRENT TAG: "+element.tagName);
       if (element.tagName.toLowerCase() === 'a') {
         found_link = element.href;
@@ -77,7 +77,7 @@
     startX = e.clientX;
     startY = e.clientY;
     let element = e.target;
-    while (element && element !== document.body) {
+    while (element && element !== document.body && element.tagName) {
       console.log("CURRENT TAG: "+element.tagName);
       if (element.tagName.toLowerCase() === 'a') {
         found_link = element.href;
@@ -88,13 +88,11 @@
       element = element.parentNode;
     }
 
-    if (element && element === document.body) {
-      console.log("NOT FOUND LINK");
-      if (document.getSelection() && document.getSelection().toString().length > 0) {
-        selected_text = document.getSelection().toString();
-        showNotification('Google: ' + selected_text);
-        dragging = true;
-      }
+    console.log("NOT FOUND LINK");
+    if (document.getSelection() && document.getSelection().toString().length > 0) {
+      selected_text = document.getSelection().toString();
+      showNotification('Google: ' + selected_text);
+      dragging = true;
     }
   }
 
