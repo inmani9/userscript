@@ -3,12 +3,12 @@
 // @encoding     utf-8
 // @namespace    https://github.com/inmani9
 // @downloadURL  https://raw.githubusercontent.com/inmani9/userscript/main/youtube-progress-bar.js
-// @version      0.2
+// @version      0.3
 // @author       BJ
 // @match        https://www.youtube.com/*
 
-// @description       Show progress bar above Youtube video player
-// @description:ko    유튜브 플레이어 위쪽에 진행바를 보여줍니다.
+// @description       Show progress bar below Youtube video player
+// @description:ko    유튜브 플레이어 아래쪽에 진행바를 보여줍니다.
 // ==/UserScript==
 
 (async function() {
@@ -45,8 +45,9 @@
     if (!player) return;
     observer.disconnect();
 
-    const header = document.getElementById('masthead-container');
-    header.appendChild(bar);
+    player.appendChild(bar);
+    //const header = document.getElementById('masthead-container');
+    //header.appendChild(bar);
 
     video.addEventListener('timeupdate', e => {
       progress.style.width = Math.round(video.currentTime) / video.duration * 100 + '%';
