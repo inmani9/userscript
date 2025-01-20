@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Open link using dragging
 // @namespace    Violentmonkey Scripts
-// @version      0.8
+// @version      0.9
 // @description  Open link based on drag direction
 // @match        http://*/*
 // @match        https://*/*
@@ -26,7 +26,7 @@
   }
 
   document.addEventListener('dragstart', (e) => { find_element(e); });
-  document.addEventListener('mousedown', (e) => { if (e.button == 0) find_link(e); });
+  document.addEventListener('mousedown', (e) => { if (e.button == 0) find_element(e); });
 
   /*
   document.body.addEventListener('mousemove', (e) => {
