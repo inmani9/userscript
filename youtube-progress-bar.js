@@ -3,7 +3,7 @@
 // @encoding     utf-8
 // @namespace    https://github.com/inmani9
 // @downloadURL  https://raw.githubusercontent.com/inmani9/userscript/main/youtube-progress-bar.js
-// @version      0.3
+// @version      0.4
 // @author       BJ
 // @match        https://www.youtube.com/*
 
@@ -24,7 +24,7 @@
     border: 1px solid white;
     background-color: #3f3f3f;
     border-radius: 3px;
-    margin: 0px 20px 0px 20px;
+    margin: 1px 20px 2px 20px;
     cursor: pointer;
   `;
   bar.onclick = function (e) {
