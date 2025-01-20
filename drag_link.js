@@ -1,14 +1,14 @@
 // ==UserScript==
-// @name         Open link using dragging
-// @namespace    Violentmonkey Scripts
-// @version      0.9
-// @description  Open link based on drag direction
-// @match        http://*/*
-// @match        https://*/*
-// @license      MIT
-// @icon         https://cdn-icons-png.freepik.com/512/96/96958.png
-// @downloadURL https://update.greasyfork.org/scripts/501187/Drag%20link%20to%20Copy.user.js
-// @updateURL https://update.greasyfork.org/scripts/501187/Drag%20link%20to%20Copy.meta.js
+// @name        Open link using dragging
+// @encoding    utf-8
+// @namespace   https://github.com/inmani9
+// @downloadURL https://raw.githubusercontent.com/inmani9/userscript/main/drag_link.js
+// @match       http://*/*
+// @match       https://*/*
+// @version     0.9
+// @author      BJ
+// @description     Open link based on drag
+// @description:ko  드래그하는 링크를 새 탭으로 여는 스트립트
 // ==/UserScript==
 
 (function() {
@@ -26,7 +26,7 @@
   }
 
   document.addEventListener('dragstart', (e) => { find_element(e); });
-  document.addEventListener('mousedown', (e) => { if (e.button == 0) find_element(e); });
+  document.addEventListener('mousedown', (e) => { if (e.button == 0) find_link(e); });
 
   /*
   document.body.addEventListener('mousemove', (e) => {
