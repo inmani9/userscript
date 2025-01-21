@@ -56,6 +56,7 @@
     clear();
   });
 
+  
   function find_element(e) {
     startX = e.clientX;
     startY = e.clientY;
@@ -82,7 +83,8 @@
   function do_action(e) {
     const deltaX = e.clientX - startX;
     const deltaY = e.clientY - startY;
-    if (Math.abs(deltaX) > 60 || Math.abs(deltaY) > 60) {
+    if ((Math.abs(deltaX) > 20 || Math.abs(deltaY) > 20)
+       && (Math.abs(deltaX) < 200 || Math.abs(deltaY) < 200)) {
       if (Math.abs(deltaX) > Math.abs(deltaY)) {
         // Horizontal movement
         if (found_link)
@@ -96,6 +98,7 @@
           open_google(selected_text);
       }
     }
+    clear();
   }
 
   function open_link(url) {
