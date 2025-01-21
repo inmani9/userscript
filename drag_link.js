@@ -5,7 +5,7 @@
 // @downloadURL https://raw.githubusercontent.com/inmani9/userscript/main/drag_link.js
 // @match       http://*/*
 // @match       https://*/*
-// @version     0.9
+// @version     0.91
 // @author      BJ
 // @description     Open link based on drag
 // @description:ko  드래그하는 링크를 새 탭으로 여는 스트립트
@@ -26,7 +26,7 @@
   }
 
   document.addEventListener('dragstart', (e) => { find_element(e); });
-  document.addEventListener('mousedown', (e) => { if (e.button == 0) find_link(e); });
+  document.addEventListener('mousedown', (e) => { if (e.button == 0) find_element(e); });
 
   /*
   document.body.addEventListener('mousemove', (e) => {
@@ -56,23 +56,6 @@
     clear();
   });
 
-  function find_link(e) {
-    startX = e.clientX;
-    startY = e.clientY;
-    let element = e.target;
-    while (element && element !== document.body && element.tagName) {
-      console.log("CURRENT TAG: "+element.tagName);
-      if (element.tagName.toLowerCase() === 'a') {
-        found_link = element.href;
-        showNotification('LINK: ' + found_link);
-        dragging = true;
-        element.dragStart(e.nativeEvent);
-        break;
-      }
-      element = element.parentNode;
-    }
-  }
-
   function find_element(e) {
     startX = e.clientX;
     startY = e.clientY;
@@ -81,7 +64,7 @@
       console.log("CURRENT TAG: "+element.tagName);
       if (element.tagName.toLowerCase() === 'a') {
         found_link = element.href;
-        showNotification('LINK: ' + found_link);
+        //showNotification('LINK: ' + found_link);
         dragging = true;
         break;
       }
@@ -91,7 +74,7 @@
     console.log("NOT FOUND LINK");
     if (document.getSelection() && document.getSelection().toString().length > 0) {
       selected_text = document.getSelection().toString();
-      showNotification('Google: ' + selected_text);
+      //showNotification('Google: ' + selected_text);
       dragging = true;
     }
   }
