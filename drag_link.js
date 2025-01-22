@@ -3,8 +3,6 @@
 // @encoding    utf-8
 // @namespace   https://github.com/inmani9
 // @downloadURL https://raw.githubusercontent.com/inmani9/userscript/main/drag_link.js
-// @match       http://*
-// @match       https://*
 // @version     0.92
 // @author      BJ
 // @description     Open link based on drag
@@ -43,7 +41,7 @@
   });
   */
 
-  document.addEventListener('drop', (e) => { clear(); }
+  document.addEventListener('drop', (e) => { clear(); });
   document.addEventListener('dragend', (e) => {
     console.log('{MOUSE POSITION} X: ' + e.clientX + ', Y: ' + e.clientY);
     const drag_cancel = e.dataTransfer.mozUserCancelled === true;
@@ -57,7 +55,7 @@
     clear();
   });
 
-  
+
   function find_element(e) {
     startX = e.clientX;
     startY = e.clientY;
