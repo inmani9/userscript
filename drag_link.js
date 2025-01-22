@@ -4,7 +4,7 @@
 // @namespace   https://github.com/inmani9
 // @downloadURL https://raw.githubusercontent.com/inmani9/userscript/main/drag_link.js
 // @match       *
-// @version     0.91
+// @version     0.92
 // @author      BJ
 // @description     Open link based on drag
 // @description:ko  드래그하는 링크를 새 탭으로 여는 스트립트
@@ -42,6 +42,7 @@
   });
   */
 
+  document.addEventListener('drop', (e) => { clear(); }
   document.addEventListener('dragend', (e) => {
     console.log('{MOUSE POSITION} X: ' + e.clientX + ', Y: ' + e.clientY);
     const drag_cancel = e.dataTransfer.mozUserCancelled === true;
