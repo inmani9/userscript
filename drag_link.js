@@ -101,14 +101,14 @@
 
   function open_link(url) {
     if (url.length > 0) {
-      window.open(url);
+      window.open(url, '_blank');
     }
   }
 
   function open_google(text) {
     if (text != null && text.length > 0) {
       const url = 'https://www.google.com/search?q='+ encodeURIComponent(text) + '&newwindow=1';
-      window.open(url);
+      window.open(url, '_blank');
     }
   }
 
