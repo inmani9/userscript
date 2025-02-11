@@ -3,7 +3,7 @@
 // @encoding    utf-8
 // @namespace   https://github.com/inmani9
 // @downloadURL https://raw.githubusercontent.com/inmani9/userscript/main/drag_link.js
-// @version     0.92
+// @version     0.93
 // @author      BJ
 // @description     Open link based on drag
 // @description:ko  드래그하는 링크를 새 탭으로 여는 스트립트
@@ -82,7 +82,7 @@
   function do_action(e) {
     const deltaX = e.clientX - startX;
     const deltaY = e.clientY - startY;
-    if (Math.abs(deltaX) > 20 || Math.abs(deltaY) > 20) {
+    if (Math.abs(deltaX) > 40 || Math.abs(deltaY) > 40) {
       if (Math.abs(deltaX) > Math.abs(deltaY)) {
         // Horizontal movement
         if (found_link)
