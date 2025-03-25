@@ -3,7 +3,7 @@
 // @encoding    utf-8
 // @namespace   https://github.com/inmani9
 // @downloadURL https://raw.githubusercontent.com/inmani9/userscript/main/drag_link.js
-// @version     0.93
+// @version     0.94
 // @author      BJ
 // @description     Open link based on drag
 // @description:ko  드래그하는 링크를 새 탭으로 여는 스트립트
@@ -23,8 +23,8 @@
     selected_text = null;
   }
 
-  document.addEventListener('dragstart', (e) => { find_element(e); });
-  document.addEventListener('mousedown', (e) => { if (e.button == 0) find_element(e); });
+  document.addEventListener('dragstart', (e) => { find_element(e, true); });
+  document.addEventListener('mousedown', (e) => { if (e.button == 0) find_element(e, false); });
 
   /*
   document.body.addEventListener('mousemove', (e) => {
@@ -56,7 +56,7 @@
   });
 
 
-  function find_element(e) {
+  function find_element(e, selection) {
     startX = e.clientX;
     startY = e.clientY;
     let element = e.target;
@@ -72,7 +72,7 @@
     }
 
     console.log("NOT FOUND LINK");
-    if (document.getSelection() && document.getSelection().toString().length > 0) {
+    if (selection && element.getSelection() && element.getSelection().toString().length > 0) {
       selected_text = document.getSelection().toString();
       //showNotification('Google: ' + selected_text);
       dragging = true;
