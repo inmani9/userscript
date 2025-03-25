@@ -3,7 +3,7 @@
 // @encoding    utf-8
 // @namespace   https://github.com/inmani9
 // @downloadURL https://raw.githubusercontent.com/inmani9/userscript/main/drag_link.js
-// @version     0.94
+// @version     0.94.1
 // @author      BJ
 // @description     Open link based on drag
 // @description:ko  드래그하는 링크를 새 탭으로 여는 스트립트
@@ -72,7 +72,7 @@
     }
 
     console.log("NOT FOUND LINK");
-    if (selection && element.getSelection() && element.getSelection().toString().length > 0) {
+    if (selection && document.getSelection() && document.getSelection().toString().length > 0) {
       selected_text = document.getSelection().toString();
       //showNotification('Google: ' + selected_text);
       dragging = true;
