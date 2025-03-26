@@ -3,7 +3,7 @@
 // @encoding    utf-8
 // @namespace   https://github.com/inmani9
 // @downloadURL https://raw.githubusercontent.com/inmani9/userscript/main/drag_link.js
-// @version     0.94.1
+// @version     0.94.2
 // @author      BJ
 // @description     Open link based on drag
 // @description:ko  드래그하는 링크를 새 탭으로 여는 스트립트
@@ -60,19 +60,35 @@
     startX = e.clientX;
     startY = e.clientY;
     let element = e.target;
+    let imgsrc = null;
     while (element && element !== document.body && element.tagName) {
       console.log("CURRENT TAG: "+element.tagName);
-      if (element.tagName.toLowerCase() === 'a') {
+      let tagName = element.tagName.toLowerCase();
+      if (tagName === 'a') {
         found_link = element.href;
         //showNotification('LINK: ' + found_link);
         dragging = true;
         break;
+      } else if (tagName === 'img') {
+        imgsrc = element;
       }
       element = element.parentNode;
     }
 
     console.log("NOT FOUND LINK");
-    if (selection && document.getSelection() && document.getSelection().toString().length > 0) {
+    if (imgsrc) {
+      var ext_re = /(?:\.([^.]+))?$/;
+      var ext = ext_re.exec(imgsrc.src)[1];
+      if (ext && ext.toLowerCase() in ["jpg", "jpeg", "gif", "png", "bmp"]) {
+        found_link = imgsrc.src;
+        dragging = true;
+      } else if (imgsrc.dataset && imgsrc.dataset.canonicalSrc) {
+        found_link = imgsrc.dataset.canonicalSrc;
+        dragging = true;
+      } else {
+        console.log(imgsrc);
+      }
+    } else if (selection && document.getSelection() && document.getSelection().toString().length > 0) {
       selected_text = document.getSelection().toString();
       //showNotification('Google: ' + selected_text);
       dragging = true;
