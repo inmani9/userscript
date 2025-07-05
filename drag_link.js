@@ -3,7 +3,7 @@
 // @encoding    utf-8
 // @namespace   https://github.com/inmani9
 // @downloadURL https://raw.githubusercontent.com/inmani9/userscript/main/drag_link.js
-// @version     0.94.4
+// @version     0.94.5
 // @author      BJ
 // @description     Open link based on drag
 // @description:ko  드래그하는 링크를 새 탭으로 여는 스트립트
@@ -23,7 +23,7 @@
     selected_text = null;
   }
 
-  document.addEventListener('dragstart', (e) => { find_element(e, true); });
+  document.addEventListener('dragstart', (e) => { if (!dragging) find_element(e, true); });
   document.addEventListener('mousedown', (e) => { if (e.button == 0) find_element(e, false); });
 
   /*
@@ -41,14 +41,14 @@
   });
   */
 
-  document.addEventListener('drop', (e) => { clear(); });
+  document.addEventListener('drop', (e) => { if (dragging) clear(); });
   document.addEventListener('dragend', (e) => {
     console.log('{MOUSE POSITION} X: ' + e.clientX + ', Y: ' + e.clientY);
     const drag_cancel = e.dataTransfer.mozUserCancelled === true;
     if (dragging && e.clientX > 0 && e.clientY > 0 && !drag_cancel) {
       do_action(e);
-    }
-    clear();
+    } else if (dragging)
+      clear();
   });
   document.addEventListener('mouseup', (e) => {
     do_action(e);
@@ -60,7 +60,6 @@
     startX = e.clientX;
     startY = e.clientY;
     let element = e.target;
-    let found_link = null;
     let imgsrc = null;
     while (element && element !== document.body && element.tagName) {
       console.log("CURRENT TAG: "+element.tagName);
