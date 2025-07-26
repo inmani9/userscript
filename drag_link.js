@@ -3,7 +3,7 @@
 // @encoding    utf-8
 // @namespace   https://github.com/inmani9
 // @downloadURL https://raw.githubusercontent.com/inmani9/userscript/main/drag_link.js
-// @version     0.94.5
+// @version     0.94.6
 // @author      BJ
 // @description     Open link based on drag
 // @description:ko  드래그하는 링크를 새 탭으로 여는 스트립트
@@ -126,8 +126,12 @@
 
   function open_google(text) {
     if (text != null && text.length > 0) {
-      const url = 'https://www.google.com/search?q='+ encodeURIComponent(text) + '&newwindow=1';
-      window.open(url, '_blank');
+      if (test.startsWith('https://'))
+        window.open(url, '_blank');
+      else {
+        const url = 'https://www.google.com/search?q='+ encodeURIComponent(text) + '&newwindow=1';
+        window.open(url, '_blank');
+      }
     }
   }
 
