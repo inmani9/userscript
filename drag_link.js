@@ -126,7 +126,7 @@
 
   function open_google(text) {
     if (text != null && text.length > 0) {
-      if (test.startsWith('https://'))
+      if (text.startsWith('https://'))
         window.open(url, '_blank');
       else {
         const url = 'https://www.google.com/search?q='+ encodeURIComponent(text) + '&newwindow=1';
