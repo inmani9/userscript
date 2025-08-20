@@ -3,10 +3,11 @@
 // @encoding    utf-8
 // @namespace   https://github.com/inmani9
 // @downloadURL https://raw.githubusercontent.com/inmani9/userscript/main/drag_link.js
-// @version     0.94.7
+// @version     0.95
 // @author      BJ
 // @description     Open link based on drag
 // @description:ko  드래그하는 링크를 새 탭으로 여는 스트립트
+// @grant       GM_openInTab
 // ==/UserScript==
 
 (function() {
@@ -120,7 +121,7 @@
 
   function open_link(url) {
     if (url.length > 0) {
-      window.open(url, '_blank');
+      GM_openInTab(url);
     }
   }
 
