@@ -3,14 +3,13 @@
 // @encoding    utf-8
 // @namespace   https://github.com/inmani9
 // @downloadURL https://raw.githubusercontent.com/inmani9/userscript/main/magnet_link.js
-// @match       https://www.lamu.city/bbs/board.php*
 // @match       https://gog-games.com/
 // @match       https://torrent*/*
 // @grant       GM_xmlhttpRequest
 // @grant       GM_addStyle
 // @grant       GM_getValue
 // @grant       GM_setValue
-// @version     1.01
+// @version     1.02
 // @author      BJ
 // @description     show button of magnet link for transmission
 // @description:ko  마그넷 링크를 트랜스미션에 연결하는 버튼을 생성
