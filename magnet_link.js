@@ -9,7 +9,7 @@
 // @grant       GM_addStyle
 // @grant       GM_getValue
 // @grant       GM_setValue
-// @version     1.02
+// @version     1.03
 // @author      BJ
 // @description     show button of magnet link for transmission
 // @description:ko  마그넷 링크를 트랜스미션에 연결하는 버튼을 생성
@@ -103,7 +103,7 @@ async function sendToTransmission(method, arguments) {
     method: method,
     arguments: arguments
   });
-  //console.log("[MAGNET-LINK] response -> " + response.status + ':' + response.responseText);
+  console.log("[MAGNET-LINK] response -> " + response.status + ':' + response.responseText);
 
   if (response.status === 200) {
     if (response.responseText.indexOf("\"torrent-duplicate\"") > 0) {
@@ -218,7 +218,6 @@ function getMagnetLinks() {
 function getMagnetLinks() {
   magnets.length = 0;
   const regex = /(?:magnet:\?xt=urn:btih:)((?:[a-z0-9A-Z])+)['"<>]/;
-  const elements = document.body.getElementsByTagName("a");
   [...document.body.getElementsByTagName("a"), ...document.body.getElementsByTagName("input")].forEach(
     (element) => {
       const html = element.outerHTML;
@@ -226,7 +225,6 @@ function getMagnetLinks() {
       while ((pos = html.indexOf("magnet", pos)) > 0) {
         const piece = html.substr(pos, 100);
         const match = regex.exec(piece);
-        //console.log("[MAGNET-LINK] found 'magnet' keyword at position: " + pos + "in html");
         if (match !== null) {
           const magnet = match[1].toUpperCase();
           console.log("[MAGNET-LINK] found magnet: " + magnet);
@@ -238,6 +236,25 @@ function getMagnetLinks() {
       }
     }
   );
+
+  if (magnets.length === 0) {
+    [...document.body.getElementsByTagName("li")].forEach((element) => {
+      const text = element.innerText;
+      const keyword = /(?:info\shash)/i;
+      if (keyword.test(text)) {
+        const hash_regex = /([a-z0-9A-Z]{32,40})($|\s|&)/;
+        const match = hash_regex.exec(text);
+        if (match !== null) {
+          const magnet_hash = match[1].toUpperCase();
+          console.log("[MAGNET-LINK] found magnet hash: " + magnet_hash);
+          magnets.push(magnet_hash);
+          let button = createMagnetButton("magnet:?xt=urn:btih:" + magnet_hash);
+          element.innerText = '';
+          element.appendChild(button);
+        }
+      }
+    });
+  }
 }
 
 (function() {
