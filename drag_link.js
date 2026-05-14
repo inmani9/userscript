@@ -3,7 +3,7 @@
 // @encoding    utf-8
 // @namespace   https://github.com/inmani9
 // @downloadURL https://raw.githubusercontent.com/inmani9/userscript/main/drag_link.js
-// @version     0.981
+// @version     0.982
 // @author      BJ
 // @description     Open link based on drag
 // @description:ko  드래그하는 링크를 새 탭으로 여는 스트립트
@@ -84,9 +84,23 @@
         break;
       } else if (tagName === 'IMG') {
         imgsrc = element;
-        console.debug(`[DR] LINK: ${imgsrc.src}`);
-        dragging = true;
-        break;
+        if (imgsrc.src) {
+          var ext_re = /(?:\.([^.]+))?$/;
+          var ext = ext_re.exec(imgsrc.src)[1];
+          if (ext && ext.toUpperCase() in ["JPG", "JPEG", "GIF", "PNG", "BMP"]) {
+            found_link = imgsrc.src;
+            dragging = true;
+            break;
+          } else if (imgsrc.dataset && imgsrc.dataset.canonicalSrc) {
+            found_link = imgsrc.dataset.canonicalSrc;
+            dragging = true;
+            break;
+          } else {
+            console.debug(`[DR] LINK: unknown image file`);
+          }
+        } else {
+          console.debug(`[DR] LINK: no source image`);
+        }
       } else if (tagName == 'VIDEO') {
         found_link = element.src || (element.querySelector('source') && element.querySelector('source').src);
         console.debug(`[DR] LINK: ${found_link}`);
@@ -101,17 +115,7 @@
     }
 
     if (!found_link) {
-      if (imgsrc) {
-        var ext_re = /(?:\.([^.]+))?$/;
-        var ext = ext_re.exec(imgsrc.src)[1];
-        if (ext && ext.toUpperCase() in ["JPG", "JPEG", "GIF", "PNG", "BMP"]) {
-          found_link = imgsrc.src;
-          dragging = true;
-        } else if (imgsrc.dataset && imgsrc.dataset.canonicalSrc) {
-          found_link = imgsrc.dataset.canonicalSrc;
-          dragging = true;
-        }
-      } else if (selection && document.getSelection() && document.getSelection().toString().length > 0) {
+      if (selection && document.getSelection() && document.getSelection().toString().length > 0) {
         selected_text = document.getSelection().toString();
         //showNotification('Google: ' + selected_text);
         dragging = true;
