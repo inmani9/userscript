@@ -3,7 +3,7 @@
 // @encoding    utf-8
 // @namespace   https://github.com/inmani9
 // @downloadURL https://raw.githubusercontent.com/inmani9/userscript/main/drag_link.js
-// @version     0.98
+// @version     0.981
 // @author      BJ
 // @description     Open link based on drag
 // @description:ko  드래그하는 링크를 새 탭으로 여는 스트립트
@@ -74,22 +74,27 @@
     let element = e.target;
     let imgsrc = null;
     while (element && element !== document.body && element.tagName) {
-      console.log("CURRENT TAG: "+element.tagName);
+      console.log(`[DR] CURRENT TAG: ${element.tagName}`);
       let tagName = element.tagName.toUpperCase();
       if (tagName === 'A') {
         found_link = element.href;
+        console.debug(`[DR] LINK: ${found_link}`);
         //showNotification('LINK: ' + found_link);
         dragging = true;
         break;
       } else if (tagName === 'IMG') {
         imgsrc = element;
+        console.debug(`[DR] LINK: ${imgsrc.src}`);
         dragging = true;
         break;
       } else if (tagName == 'VIDEO') {
         found_link = element.src || (element.querySelector('source') && element.querySelector('source').src);
-        if (found_link) {
+        console.debug(`[DR] LINK: ${found_link}`);
+        if (found_link && found_link.startsWith('http')) {
           dragging = true;
           break;
+        } else {
+          found_link = null;
         }
       }
       element = element.parentNode;
@@ -105,8 +110,6 @@
         } else if (imgsrc.dataset && imgsrc.dataset.canonicalSrc) {
           found_link = imgsrc.dataset.canonicalSrc;
           dragging = true;
-        } else {
-          console.log(imgsrc);
         }
       } else if (selection && document.getSelection() && document.getSelection().toString().length > 0) {
         selected_text = document.getSelection().toString();
