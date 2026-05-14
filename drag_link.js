@@ -3,7 +3,7 @@
 // @encoding    utf-8
 // @namespace   https://github.com/inmani9
 // @downloadURL https://raw.githubusercontent.com/inmani9/userscript/main/drag_link.js
-// @version     0.95
+// @version     0.96
 // @author      BJ
 // @description     Open link based on drag
 // @description:ko  드래그하는 링크를 새 탭으로 여는 스트립트
@@ -22,10 +22,19 @@
     dragging = false;
     found_link = null;
     selected_text = null;
+    action_performed = false;
   }
 
-  document.addEventListener('dragstart', (e) => { if (!dragging) find_element(e, true); });
-  document.addEventListener('mousedown', (e) => { if (e.button == 0) find_element(e, false); });
+  document.addEventListener('dragstart', (e) => {
+    if (!dragging) {
+      find_element(e, true);
+    }
+  });
+  document.addEventListener('mousedown', (e) => {
+    if (e.button == 0) {
+      find_element(e, false);
+    }
+  });
 
   /*
   document.body.addEventListener('mousemove', (e) => {
@@ -44,16 +53,21 @@
 
   document.addEventListener('drop', (e) => { if (dragging) clear(); });
   document.addEventListener('dragend', (e) => {
-    console.log('{MOUSE POSITION} X: ' + e.clientX + ', Y: ' + e.clientY);
-    const drag_cancel = e.dataTransfer.mozUserCancelled === true;
-    if (dragging && e.clientX > 0 && e.clientY > 0 && !drag_cancel) {
-      do_action(e);
-    } else if (dragging)
-      clear();
+    if (dragging && !action_performed) {
+      console.log('{MOUSE POSITION} X: ' + e.clientX + ', Y: ' + e.clientY);
+      const drag_cancel = e.dataTransfer.mozUserCancelled === true;
+      if (dragging && e.clientX > 0 && e.clientY > 0 && !drag_cancel) {
+        do_action(e);
+      } else {
+        clear();
+      }
+    }
   });
   document.addEventListener('mouseup', (e) => {
-    do_action(e);
-    clear();
+    if (dragging) {
+      do_action(e);
+      clear();
+    }
   });
 
 
@@ -72,6 +86,14 @@
         break;
       } else if (tagName === 'IMG') {
         imgsrc = element;
+        dragging = true;
+        break;
+      } else if (tagName == 'VIDEO') {
+        found_link = element.src || (element.querySelector('source') && element.querySelector('source').src);
+        if (found_link) {
+          dagging = true;
+          break;
+        }
       }
       element = element.parentNode;
     }
@@ -100,6 +122,8 @@
   }
 
   function do_action(e) {
+    if (!dragging) return; // 이미 처리가 끝났다면 중단
+
     const deltaX = e.clientX - startX;
     const deltaY = e.clientY - startY;
     if (Math.abs(deltaX) > 40 || Math.abs(deltaY) > 40) {
@@ -120,19 +144,16 @@
   }
 
   function open_link(url) {
-    if (url.length > 0) {
-      GM_openInTab(url);
+    if (url && url.startsWith('http')) {
+      GM_openInTab(url, { active: true, insert: true, setParent: true});
     }
   }
 
   function open_google(text) {
-    if (text != null && text.length > 0) {
-      if (text.startsWith('https://'))
-        window.open(url, '_blank');
-      else {
-        const url = 'https://www.google.com/search?q='+ encodeURIComponent(text) + '&newwindow=1';
-        window.open(url, '_blank');
-      }
+    if (text) {
+      const url = text.startsWith('http') ? text : 'https://www.google.com/search?q=' + encodeURIComponent(text);
+      // GM_openInTab을 사용하는 것이 팝업 차단 회피에 더 유리함
+      GM_openInTab(url, { active: true });
     }
   }
 
