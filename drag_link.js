@@ -3,7 +3,7 @@
 // @encoding    utf-8
 // @namespace   https://github.com/inmani9
 // @downloadURL https://raw.githubusercontent.com/inmani9/userscript/main/drag_link.js
-// @version     0.97
+// @version     0.98
 // @author      BJ
 // @description     Open link based on drag
 // @description:ko  드래그하는 링크를 새 탭으로 여는 스트립트
@@ -88,7 +88,7 @@
       } else if (tagName == 'VIDEO') {
         found_link = element.src || (element.querySelector('source') && element.querySelector('source').src);
         if (found_link) {
-          dagging = true;
+          dragging = true;
           break;
         }
       }
