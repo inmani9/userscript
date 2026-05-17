@@ -1,8 +1,7 @@
 // ==UserScript==
 // @name         RememberTitles
-// @version      1.2
+// @version      1.21
 // @description  Remember media titles and mark them
-// @match        *://*/*
 // @match        https://sukebei.nyaa.si/*
 // @match        https://supjav.com/ja/*
 // @match        https://missav.*/*
