@@ -1,10 +1,13 @@
 // ==UserScript==
 // @name         RememberTitles
-// @version      1.1
+// @version      1.2
 // @description  Remember media titles and mark them
 // @match        *://*/*
-// @exclude      https://www.youtube.com/*
-// @exclude      https://bt.korail.com/*
+// @match        https://sukebei.nyaa.si/*
+// @match        https://supjav.com/ja/*
+// @match        https://missav.*/*
+// @match        https://enterjoy.day/*
+// @match        https://tcafe21.com/*
 // @grant        GM_addStyle
 // @grant        GM.setValue
 // @grant        GM.getValue
