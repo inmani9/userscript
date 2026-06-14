@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         RememberTitles
-// @version      1.21
+// @version      1.3
 // @description  Remember media titles and mark them
 // @match        https://sukebei.nyaa.si/*
 // @match        https://supjav.com/ja/*
@@ -65,7 +65,6 @@
         button.appendChild(icon);
         if (item.help == '검색') {
           button.addEventListener('click', () => {
-            //const name = button.getAttribute('data-value');
             const name = fav_menu.lastChild.innerText;
             if (name != null) {
               if (window.navigator.userAgent.includes('Firefox') || name.length < av_prefix.length || !name.startsWith(av_prefix)) {
@@ -83,11 +82,11 @@
               hidePopup();
             }
           });
-        } else if (item.point !== null) {
-          button.addEventListener('click', () => {
+        } else if (item.point !== undefined) {
+          button.addEventListener('click', async () => {
             const name = button.getAttribute('data-value');
             if (name != null) {
-              if (addWord(name, item.point)) {
+              if (await addWord(name, item.point)) {
                 markAll();
               }
               hidePopup();
@@ -137,8 +136,7 @@
         border-radius: 6px;
         box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
         font-family: Arial, sans-serif;
-        transition: opacity 0.2s ease-in-out;
-        transition: left 0.4s;
+        transition: opacity 0.2s ease-in-out, left 0.4s;
         opacity: 1;
     }
     #custom-selection-popup.hiding {
@@ -231,14 +229,12 @@
 
   function getName(element) {
     let content = collectText(element);
-    //if (content.length > 0) { console.debug(element.childNodes); }
-    const match = /\r|\n/.exec(content);
-    if (match) {
+    const newline = /\r|\n/.exec(content);
+    if (newline) {
       return null;
     }
     content = rtrim(content.replaceAll('+', ' '));
     if (content.length > 0) {
-      //console.log(`[RemT] Text: "${content}"`);
       let match = r_av.exec(content);
       if (match !== null) {
         if (match[1]) { // FC2
@@ -314,37 +310,34 @@
 
   function sign(parent = document.body) {
     [...parent.children].forEach(element => {
-      if (element.tagName) {
-        const f_tags = ['A', 'H1', 'H2', 'H3'];
-        //console.log(`${element.tagName} in ${f_tags} -> ${element.tagName in f_tags}, ${f_tags.includes(element.tagName)}`);
-        if (f_tags.includes(element.tagName) && element.innerText.trim().length > 0) {
-          const firstChild = element.firstChild;
-          if (firstChild.nodeType == Node.ELEMENT_NODE && firstChild.getAttribute('mark-title') != null) {
-            const name = firstChild.getAttribute('mark-title');
+      const f_tags = ['A', 'H1', 'H2', 'H3'];
+      if (f_tags.includes(element.tagName) && element.innerText.trim().length > 0) {
+        const firstChild = element.firstChild;
+        if (firstChild.nodeType == Node.ELEMENT_NODE && firstChild.getAttribute('mark-title') != null) {
+          const name = firstChild.getAttribute('mark-title');
+          const pt = fav_words[name];
+          if (pt !== parseInt(firstChild.getAttribute('mark-point'), 10)) {
+            const item = menu.find(item => item.point === pt);
+            changeIcon(firstChild, item);
+          }
+          return;
+        } else {
+          const name = getName(element);
+          if (name != null) {
             const pt = fav_words[name];
-            if (pt !== firstChild.getAttribute('mark-point')) {
+            if (pt != null) {
               const item = menu.find(item => item.point === pt);
-              changeIcon(firstChild, item);
-            }
-            return;
-          } else {
-            const name = getName(element);
-            if (name != null) {
-              const pt = fav_words[name];
-              if (pt != null) {
-                const item = menu.find(item => item.point === pt);
-                const icon = attachIcon(item, name);
-                console.log(`[RemT] Tagged: ${name}, ${pt}`);
-                element.insertBefore(icon, firstChild);
-                return;
-              }
+              const icon = attachIcon(item, name);
+              console.log(`[RemT] Tagged: ${name}, ${pt}`);
+              element.insertBefore(icon, firstChild);
+              return;
             }
           }
-        } else if (element.tagName == 'ASIDE') {
-          return;
         }
-        sign(element);
+      } else if (element.tagName == 'ASIDE') {
+        return;
       }
+      sign(element);
     });
   }
 
@@ -449,17 +442,12 @@
   function computedWidth(element) {
     const range = document.createRange();
     range.selectNodeContents(element);
-    return {
-      textWidth: range.getBoundingClientRect().width,
-      totalWidth: element.offsetWidth
-    };
+    return range.getBoundingClientRect().width;
   }
 
   function start() {
     loadDic();
     createMenu();
-
-    //setTimeout(start, 1000);
   }
 
   channel.onmessage = (event) => {
@@ -488,16 +476,19 @@
   document.addEventListener('mousemove', (event) => {
     const element = document.elementFromPoint(event.clientX, event.clientY);
     const cursor_x = window.scrollX + event.clientX;
-    const cursor_y = event.clientY;
     if (element != fav_element) {
       if (filter(element)) {
         fav_element = element;
         const name = getName(element);
         if (name) {
           const rect = element.getBoundingClientRect();
-          const widths = computedWidth(element);
-          console.log(`[RemT] ${widths.textWidth}px / ${widths.totalWidth} + left: ${rect.left}`);
-          console.log(`[RemT] cursor x: ${cursor_x}, y : ${cursor_y}`);
+          const textWidth = computedWidth(element);
+          console.log(`[RemT] textWidth: ${textWidth}px, left: ${rect.left}, cursor x: ${cursor_x}`);
+
+          if (event.clientX < rect.left || event.clientX > rect.left + textWidth) {
+            fav_element = null;
+            return;
+          }
 
           let popupX = window.scrollX + event.clientX;
           if (popupX > 20) {
@@ -515,7 +506,7 @@
         }
       } else if (fav_element) {
           const rect = fav_element.getBoundingClientRect();
-          if (event.clientY > window.scrollY + rect.top + rect.height + 16) {
+          if (event.clientY > rect.top + rect.height + 16) {
               hidePopup(100);
           }
       }

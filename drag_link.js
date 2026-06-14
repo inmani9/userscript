@@ -3,7 +3,7 @@
 // @encoding    utf-8
 // @namespace   https://github.com/inmani9
 // @downloadURL https://raw.githubusercontent.com/inmani9/userscript/main/drag_link.js
-// @version     0.982
+// @version     1.0
 // @author      BJ
 // @description     Open link based on drag
 // @description:ko  드래그하는 링크를 새 탭으로 여는 스트립트
@@ -14,12 +14,13 @@
   'use strict';
   let startX, startY;
   let dragging = false;
+  let mouse_dragging = false; // mousemove 기반 드래그 감지 중
   let found_link = null;
   let selected_text = null;
-  let notificationTimeout;
 
   function clear() {
     dragging = false;
+    mouse_dragging = false;
     found_link = null;
     selected_text = null;
   }
@@ -32,26 +33,23 @@
   document.addEventListener('mousedown', (e) => {
     if (e.button == 0) {
       find_element(e, false);
+      if (!dragging) {
+        // dragstart가 억제될 수 있는 요소(VIDEO 등)를 위해
+        // mousedown 시점에 찾지 못했더라도 mousemove로 재시도
+        mouse_dragging = true;
+      }
     }
   });
-
-  /*
-  document.body.addEventListener('mousemove', (e) => {
-    if (found_link)
-      showNotification('Link: ' + found_link);
-    else if (selected_text)
-      showNotification('Google: ' + selected_text);
+  document.addEventListener('mousemove', (e) => {
+    if (mouse_dragging && !dragging) {
+      // dragstart가 억제된 요소(VIDEO 등)를 위해 mousemove에서 재탐색 (한 번만)
+      mouse_dragging = false;
+      find_element_at(e.target, true);
+    }
   });
-  document.body.addEventListener('drag', (e) => {
-    if (found_link)
-      showNotification('Link: ' + found_link);
-    else if (selected_text)
-      showNotification('Google: ' + selected_text);
-  });
-  */
-
   document.addEventListener('drop', (e) => { if (dragging) clear(); });
   document.addEventListener('dragend', (e) => {
+    mouse_dragging = false;
     if (dragging) {
       const drag_cancel = e.dataTransfer.mozUserCancelled === true;
       if (e.clientX > 0 && e.clientY > 0 && !drag_cancel) {
@@ -62,37 +60,41 @@
     }
   });
   document.addEventListener('mouseup', (e) => {
+    mouse_dragging = false;
     if (dragging) {
       do_action(e);
+    } else {
+      clear();
     }
   });
-
 
   function find_element(e, selection) {
     startX = e.clientX;
     startY = e.clientY;
-    let element = e.target;
-    let imgsrc = null;
+    find_element_at(e.target, selection);
+  }
+
+  function find_element_at(target, selection) {
+    let element = target;
     while (element && element !== document.body && element.tagName) {
+      const tagName = element.tagName.toUpperCase();
       console.log(`[DR] CURRENT TAG: ${element.tagName}`);
-      let tagName = element.tagName.toUpperCase();
       if (tagName === 'A') {
         found_link = element.href;
         console.debug(`[DR] LINK: ${found_link}`);
-        //showNotification('LINK: ' + found_link);
         dragging = true;
         break;
       } else if (tagName === 'IMG') {
-        imgsrc = element;
-        if (imgsrc.src) {
-          var ext_re = /(?:\.([^.]+))?$/;
-          var ext = ext_re.exec(imgsrc.src)[1];
-          if (ext && ext.toUpperCase() in ["JPG", "JPEG", "GIF", "PNG", "BMP"]) {
-            found_link = imgsrc.src;
+        if (element.src) {
+          const ext = /(?:\.([^.]+))?$/.exec(element.src)[1];
+          if (ext && ["JPG", "JPEG", "GIF", "PNG", "BMP"].includes(ext.toUpperCase())) {
+            found_link = element.src;
+            console.debug(`[DR] LINK: ${found_link}`);
             dragging = true;
             break;
-          } else if (imgsrc.dataset && imgsrc.dataset.canonicalSrc) {
-            found_link = imgsrc.dataset.canonicalSrc;
+          } else if (element.dataset && element.dataset.canonicalSrc) {
+            found_link = element.dataset.canonicalSrc;
+            console.debug(`[DR] LINK: ${found_link}`);
             dragging = true;
             break;
           } else {
@@ -101,23 +103,22 @@
         } else {
           console.debug(`[DR] LINK: no source image`);
         }
-      } else if (tagName == 'VIDEO') {
-        found_link = element.src || (element.querySelector('source') && element.querySelector('source').src);
-        console.debug(`[DR] LINK: ${found_link}`);
-        if (found_link && found_link.startsWith('http')) {
+      } else if (tagName === 'VIDEO') {
+        const src = element.src || (element.querySelector('source') && element.querySelector('source').src);
+        console.debug(`[DR] LINK: ${src}`);
+        if (src && src.startsWith('http')) {
+          found_link = src;
           dragging = true;
           break;
-        } else {
-          found_link = null;
         }
       }
       element = element.parentNode;
     }
 
-    if (!found_link) {
-      if (selection && document.getSelection() && document.getSelection().toString().length > 0) {
-        selected_text = document.getSelection().toString();
-        //showNotification('Google: ' + selected_text);
+    if (!found_link && selection) {
+      const sel = document.getSelection();
+      if (sel && sel.toString().length > 0) {
+        selected_text = sel.toString();
         dragging = true;
       } else {
         console.log("NOT FOUND LINK");
@@ -126,64 +127,30 @@
   }
 
   function do_action(e) {
-    if (!dragging) return; // 이미 처리가 끝났다면 중단
+    if (!dragging) return;
+    dragging = false; // 중복 호출 차단
 
     const deltaX = e.clientX - startX;
     const deltaY = e.clientY - startY;
     if (Math.abs(deltaX) > 40 || Math.abs(deltaY) > 40) {
-      if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        // Horizontal movement
-        if (found_link)
-          open_link(found_link);
-        else
-          open_google(selected_text);
-      } else {
-        if (found_link)
-          open_link(found_link);
-        else
-          open_google(selected_text);
-      }
+      if (found_link)
+        open_link(found_link);
+      else
+        open_google(selected_text);
     }
     clear();
   }
 
   function open_link(url) {
     if (url && url.startsWith('http')) {
-      GM_openInTab(url, { active: true, insert: true, setParent: true});
+      GM_openInTab(url, { active: true, insert: true, setParent: true });
     }
   }
 
   function open_google(text) {
     if (text) {
       const url = text.startsWith('http') ? text : 'https://www.google.com/search?q=' + encodeURIComponent(text);
-      // GM_openInTab을 사용하는 것이 팝업 차단 회피에 더 유리함
       GM_openInTab(url, { active: true });
     }
-  }
-
-  function showNotification(message) {
-    clearTimeout(notificationTimeout);
-    let notification = document.getElementById('drag-copy-notification');
-    if (!notification) {
-      notification = document.createElement('div');
-      notification.id = 'drag-copy-notification';
-      notification.style.cssText = `
-          position: fixed;
-          top: 40px;
-          right: 10px;
-          background-color: #1E90FF ;
-          color: white;
-          padding: 7px 12px 7px 12px;
-          border-radius: 5px;
-          z-index: 9999;
-          font-family: Arial, sans-serif;
-      `;
-      document.body.appendChild(notification);
-    }
-    notification.textContent = message;
-    notification.style.display = 'block';
-    notificationTimeout = setTimeout(() => {
-      notification.style.display = 'none';
-    }, 2000);
   }
 })();
