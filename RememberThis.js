@@ -1,15 +1,16 @@
 // ==UserScript==
 // @name         RememberTitles
-// @version      1.3
+// @version      1.4
 // @description  Remember media titles and mark them
 // @match        https://sukebei.nyaa.si/*
 // @match        https://supjav.com/ja/*
-// @match        https://missav.*/*
+// @include      /^https://missav\.[^/]*?/.*?$/
 // @match        https://enterjoy.day/*
 // @match        https://tcafe21.com/*
 // @grant        GM_addStyle
 // @grant        GM.setValue
 // @grant        GM.getValue
+// @grant        GM.xmlhttpRequest
 // @run-at       document-start
 // ==/UserScript==
 
@@ -53,6 +54,60 @@
     return false;
   }
 
+  function get_file_list(element, name) {
+    GM.xmlhttpRequest({
+      method: "GET",
+      url: `http://localhost:5000/search?q=${encodeURIComponent(name)}`,
+      onload: function(response) {
+        const data = JSON.parse(response.responseText);
+        if (element != null) {
+          // 1. 목록 컨테이너 생성
+          const listContainer = document.createElement("ul");
+          listContainer.style.border = "1px solid #ccc";
+          listContainer.style.position = "block";
+          listContainer.style.backgroundColor = "#ee3";
+          listContainer.style.listStyle = "none";
+          listContainer.style.padding = "4px";
+
+          if (data.files.length > 0) {
+            // 2. JSON 데이터로 리스트 아이템 생성
+            data.files.forEach(item => {
+              const li = document.createElement("li");
+              li.textContent = item;
+              li.style.padding = "0 8px 0 8px";
+              listContainer.appendChild(li);
+            });
+          } else {
+            const li = document.createElement("li");
+            li.textContent = `(!) 파일 없음`;
+            li.style.padding = "0 8px 0 8px";
+            listContainer.appendChild(li);
+          }
+
+          // 3. 기준 요소 바로 아래에 삽입
+          // 'afterend'는 타겟 요소의 바로 다음(아래)에 배치합니다.
+          element.insertAdjacentElement('afterend', listContainer);
+        }
+      },
+      onerror: function(err) {
+        if (element != null) {
+          const listContainer = document.createElement("ul");
+          listContainer.style.border = "1px solid #ccc";
+          listContainer.style.position = "block";
+          listContainer.style.backgroundColor = "#ee3";
+          listContainer.style.listStyle = "none";
+          listContainer.style.padding = "4px";
+          const li = document.createElement("li");
+          li.textContent = `(!) 연결 실패: ${err}`;
+          li.style.padding = "0 8px 0 8px";
+          listContainer.appendChild(li);
+
+          element.insertAdjacentElement('afterend', listContainer);
+        }
+      }
+    });
+  }
+
   function createMenu() {
     if (!fav_menu) {
       fav_menu = document.createElement('div');
@@ -67,6 +122,7 @@
           button.addEventListener('click', () => {
             const name = fav_menu.lastChild.innerText;
             if (name != null) {
+              get_file_list(fav_element, name)
               if (window.navigator.userAgent.includes('Firefox') || name.length < av_prefix.length || !name.startsWith(av_prefix)) {
                 window.open(`${google_search}${encodeURIComponent(name)}`, '_blank');
               } else {
@@ -457,18 +513,18 @@
   };
 
   document.addEventListener('DOMContentLoaded', () => {
-    console.log('[RemT] PAGE LOADED!');
+    console.debug('[RemT] PAGE LOADED!');
     start();
   });
 
   document.addEventListener('visibilitychange', () => {
-    console.log('[RemT] PAGE CHANGE!');
+    console.debug('[RemT] PAGE CHANGE!');
     start();
   });
 
   window.addEventListener('pageshow', function(event) {
     if (event.persisted || performance.navigation.type === 2) {
-      console.log('[RemT] HISTORY BACK!');
+      console.debug('[RemT] HISTORY BACK!');
       start();
     }
   });
@@ -483,7 +539,7 @@
         if (name) {
           const rect = element.getBoundingClientRect();
           const textWidth = computedWidth(element);
-          console.log(`[RemT] textWidth: ${textWidth}px, left: ${rect.left}, cursor x: ${cursor_x}`);
+          console.debug(`[RemT] textWidth: ${textWidth}px, left: ${rect.left}, cursor x: ${cursor_x}`);
 
           if (event.clientX < rect.left || event.clientX > rect.left + textWidth) {
             fav_element = null;
