@@ -3,7 +3,7 @@
 // @encoding    utf-8
 // @namespace   https://github.com/inmani9
 // @downloadURL https://raw.githubusercontent.com/inmani9/userscript/main/drag_link.js
-// @version     1.1
+// @version     1.1.1
 // @author      BJ
 // @description     Open link based on drag
 // @description:ko  드래그하는 링크를 새 탭으로 여는 스트립트
@@ -94,7 +94,6 @@
             found_img_url = element.src;
             console.debug(`[DR] IMG: ${found_img_url}`);
             dragging = true;
-            break;
           } else if (element.dataset && element.dataset.canonicalSrc) {
             found_link_url = element.dataset.canonicalSrc;
             console.debug(`[DR] LINK: ${found_link_url}`);
