@@ -3,7 +3,7 @@
 // @encoding    utf-8
 // @namespace   https://github.com/inmani9
 // @downloadURL https://raw.githubusercontent.com/inmani9/userscript/main/drag_link.js
-// @version     1.1.2
+// @version     1.1.3
 // @author      BJ
 // @description     Open link based on drag
 // @description:ko  드래그하는 링크를 새 탭으로 여는 스트립트
@@ -22,7 +22,8 @@
   function clear() {
     dragging = false;
     mouse_dragging = false;
-    found_link = null;
+    found_img_url = null;
+    found_link_url = null;
     selected_text = null;
   }
 
