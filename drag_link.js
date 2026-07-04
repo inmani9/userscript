@@ -3,7 +3,7 @@
 // @encoding    utf-8
 // @namespace   https://github.com/inmani9
 // @downloadURL https://raw.githubusercontent.com/inmani9/userscript/main/drag_link.js
-// @version     1.1.1
+// @version     1.1.2
 // @author      BJ
 // @description     Open link based on drag
 // @description:ko  드래그하는 링크를 새 탭으로 여는 스트립트
@@ -79,32 +79,14 @@
     let element = target;
     found_img_url = null;
     found_link_url = null;
+
     while (element && element !== document.body && element.tagName) {
       const tagName = element.tagName.toUpperCase();
-      console.log(`[DR] CURRENT TAG: ${element.tagName}`);
+      
       if (tagName === 'A') {
         found_link_url = element.href;
-        console.debug(`[DR] LINK: ${found_link_url}`);
-        dragging = true;
-        break;
       } else if (tagName === 'IMG') {
-        if (element.src) {
-          const ext = /(?:\.([^.]+))?$/.exec(element.src)[1];
-          if (ext && ["JPG", "JPEG", "GIF", "PNG", "BMP"].includes(ext.toUpperCase())) {
-            found_img_url = element.src;
-            console.debug(`[DR] IMG: ${found_img_url}`);
-            dragging = true;
-          } else if (element.dataset && element.dataset.canonicalSrc) {
-            found_link_url = element.dataset.canonicalSrc;
-            console.debug(`[DR] LINK: ${found_link_url}`);
-            dragging = true;
-            break;
-          } else {
-            console.debug(`[DR] LINK: unknown image file`);
-          }
-        } else {
-          console.debug(`[DR] LINK: no source image`);
-        }
+        found_img_url = element.src;
       } else if (tagName === 'VIDEO') {
         const src = element.src || (element.querySelector('source') && element.querySelector('source').src);
         console.debug(`[DR] LINK: ${src}`);
@@ -114,6 +96,11 @@
           break;
         }
       }
+      
+      if (found_link_url || found_img_url) dragging = true;
+      
+      // 링크를 찾았으면 더 위로 올라가지 않고 종료
+      if (found_link_url) break; 
       element = element.parentNode;
     }
 
