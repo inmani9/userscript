@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         RememberTitles
-// @version      1.4
+// @version      1.5
 // @description  Remember media titles and mark them
 // @match        https://sukebei.nyaa.si/*
 // @match        https://supjav.com/ja/*
@@ -26,7 +26,7 @@
   const google_search='https://www.google.com/search?q='
   const jav_search='https://supjav.com/ja/?s=';
 
-  const r_novel = /^[#+]*(?:[[(]?.*?[\])])*\s*((?:-[0-9]{1,9})*[「【0-9A-Za-z]*[a-zA-Z가-힣]+[^@]*?)(?:[@ⓒ].*|v\.?\d+.*|(?:\d*[ 권화]?\s*[-~ㅡ_]\s*\d+[ 권화]?).*|완|완결|\(완\)|完)?$/;
+  const r_novel = /^[#+]*(?:완\)|완결\)|[[(].*?[\])])?\s*((?:-[0-9]{1,9})*[「【0-9A-Za-z]*[a-zA-Z가-힣]+[^@]*?)(?:[@ⓒ].*|v\.?\d+.*|(?:\d*[ 권화]?\s*[-~ㅡ_]\s*\d+[ 권화]?).*|완|완결|\(완\)|完)?$/;
   const r_av = /(?:(fc2)[ _-]?(?:ppv)?[ _-](\d+))|ppv[ _-](\d+)|(\d*[a-zA-Z]+\d*)[-_](\d+)/i;
   const r_oldav = /(\d+[_-]\d+)-(1pon|carib|10mu|paco)/i;
   const av_prefix = '(AV) ';
@@ -55,20 +55,24 @@
   }
 
   function get_file_list(element, name) {
+    var listContainer = null;
+    if (element != null) {
+      // 1. 목록 컨테이너 생성
+      listContainer = document.createElement("ul");
+      listContainer.style.border = "1px solid #ccc";
+      listContainer.style.position = "block";
+      listContainer.style.backgroundColor = "#ee3";
+      listContainer.style.listStyle = "none";
+      listContainer.style.padding = "4px";
+    }
+
     GM.xmlhttpRequest({
       method: "GET",
+      timeout: 2000,
       url: `http://localhost:5000/search?q=${encodeURIComponent(name)}`,
       onload: function(response) {
         const data = JSON.parse(response.responseText);
-        if (element != null) {
-          // 1. 목록 컨테이너 생성
-          const listContainer = document.createElement("ul");
-          listContainer.style.border = "1px solid #ccc";
-          listContainer.style.position = "block";
-          listContainer.style.backgroundColor = "#ee3";
-          listContainer.style.listStyle = "none";
-          listContainer.style.padding = "4px";
-
+        if (listContainer != null) {
           if (data.files.length > 0) {
             // 2. JSON 데이터로 리스트 아이템 생성
             data.files.forEach(item => {
@@ -90,15 +94,19 @@
         }
       },
       onerror: function(err) {
-        if (element != null) {
-          const listContainer = document.createElement("ul");
-          listContainer.style.border = "1px solid #ccc";
-          listContainer.style.position = "block";
-          listContainer.style.backgroundColor = "#ee3";
-          listContainer.style.listStyle = "none";
-          listContainer.style.padding = "4px";
+        if (listContainer != null) {
           const li = document.createElement("li");
           li.textContent = `(!) 연결 실패: ${err}`;
+          li.style.padding = "0 8px 0 8px";
+          listContainer.appendChild(li);
+
+          element.insertAdjacentElement('afterend', listContainer);
+        }
+      },
+      ontimeout: function() {
+        if (listContainer != null) {
+          const li = document.createElement("li");
+          li.textContent = `(!) 연결 실패: 시간 초과`;
           li.style.padding = "0 8px 0 8px";
           listContainer.appendChild(li);
 
