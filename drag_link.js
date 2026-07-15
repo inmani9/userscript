@@ -3,7 +3,7 @@
 // @encoding    utf-8
 // @namespace   https://github.com/inmani9
 // @downloadURL https://raw.githubusercontent.com/inmani9/userscript/main/drag_link.js
-// @version     1.1.3
+// @version     1.1.4
 // @author      BJ
 // @description     Open link based on drag
 // @description:ko  드래그하는 링크를 새 탭으로 여는 스트립트
@@ -121,16 +121,15 @@
     dragging = false; // 중복 호출 차단
 
     const deltaX = e.clientX - startX;
-  
-    if (Math.abs(deltaX) > 40) {
+    const deltaY = e.clientY - startY;
+
+    if (Math.abs(deltaX) > 40 || Math.abs(deltaY) > 40) {
       let target_url = null;
-      
-      // 왼쪽 드래그 (deltaX < 0): 이미지 우선
-      if (deltaX < 0) {
+
+      // 좌상단 영역만 이미지 우선, 그 외 방향은 링크 우선
+      if (deltaX < 0 && deltaY < 0) {
         target_url = found_img_url || found_link_url;
-      } 
-      // 오른쪽 드래그 (deltaX > 0): 링크 우선
-      else {
+      } else {
         target_url = found_link_url || found_img_url;
       }
 
