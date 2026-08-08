@@ -3,12 +3,12 @@
 // @encoding     utf-8
 // @namespace    https://github.com/inmani9
 // @downloadURL  https://raw.githubusercontent.com/inmani9/userscript/main/youtube-progress-bar.js
-// @version      0.7
+// @version      0.8
 // @author       BJ
 // @match        https://www.youtube.com/*
 
-// @description       Show progress bar below Youtube video player with hover time and thumbnail preview
-// @description:ko    유튜브 플레이어 아래쪽에 진행바와 시간, 썸네일 미리보기 기능을 추가합니다.
+// @description       Show progress bar below Youtube video player with hover current time and thumbnail preview
+// @description:ko    유튜브 플레이어 아래쪽에 진행바와 현재 재생 시간, 썸네일 미리보기 기능을 추가합니다.
 // ==/UserScript==
 
 (async function() {
@@ -22,7 +22,7 @@
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   }
 
-  // 1. 진행바 및 툴팁 생성
+  // 1. 진행바 및 현재 시간 툴팁 생성
   const bar = document.createElement('div');
   bar.style = `
     position: relative;
@@ -35,16 +35,18 @@
     cursor: pointer;
   `;
 
+  // 툴팁 글자 크기 확대 및 스타일 조정
   const tooltip = document.createElement('div');
   tooltip.style = `
     position: absolute;
     bottom: 12px;
     transform: translateX(-50%);
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: rgba(0, 0, 0, 0.85);
     color: white;
-    padding: 2px 6px;
-    font-size: 11px;
-    border-radius: 3px;
+    padding: 4px 8px;
+    font-size: 13px;
+    font-weight: bold;
+    border-radius: 4px;
     white-space: nowrap;
     display: none;
     z-index: 9999;
@@ -60,24 +62,31 @@
     video.currentTime = (mouseX / bar.offsetWidth) * video.duration;
   };
 
+  // 마우스를 올리는 동안 현재 재생 시간을 실시간으로 표시
   bar.addEventListener('mouseenter', function () {
+    const video = document.querySelector('#movie_player video');
+    if (video === null) return;
+
+    const rect = bar.getBoundingClientRect();
+    // 마우스가 위치한 곳의 X 좌표를 기준으로 툴팁 위치 설정
+    bar.onmousemove = function(e) {
+      let mouseX = e.clientX - rect.left;
+      tooltip.style.left = `${mouseX}px`;
+    };
+
+    tooltip.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
     tooltip.style.display = 'block';
   });
 
-  bar.addEventListener('mousemove', function (e) {
+  // 비디오가 재생 중일 때 호버 상태라면 현재 시간 갱신
+  bar.addEventListener('mousemove', function () {
     const video = document.querySelector('#movie_player video');
-    if (video === null || !video.duration) return;
-
-    const rect = bar.getBoundingClientRect();
-    let mouseX = e.clientX - rect.left;
-    let hoverPercent = Math.max(0, Math.min(1, mouseX / bar.offsetWidth));
-    let hoverTime = hoverPercent * video.duration;
-    
-    tooltip.style.left = `${mouseX}px`;
-    tooltip.textContent = `${formatTime(hoverTime)} / ${formatTime(video.duration)}`;
+    if (video === null) return;
+    tooltip.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
   });
 
   bar.addEventListener('mouseleave', function () {
+    bar.onmousemove = null;
     tooltip.style.display = 'none';
   });
 
@@ -85,15 +94,15 @@
   progress.style = 'width: 0%; height: 100%; background-color: #ffff00; transition: all 0.1s;';
   bar.appendChild(progress);
 
-  // 2. 구독 버튼과 어울리는 크기 및 스타일로 썸네일 버튼 생성
+  // 2. 썸네일 버튼 텍스트 축소 (아이콘 + 간결한 텍스트)
   const thumbIcon = document.createElement('div');
-  thumbIcon.textContent = '🖼️썸네일';
+  thumbIcon.textContent = '🖼️ 썸네일';
   thumbIcon.style = `
     display: inline-flex;
     align-items: center;
     cursor: pointer;
     margin-left: 8px;
-    padding: 0 16px;
+    padding: 0 14px;
     height: 36px;
     font-size: 14px;
     font-weight: 500;
@@ -106,7 +115,6 @@
     transition: background-color 0.2s;
   `;
 
-  // 썸네일 크기를 더 크게 확장 (480x270 비율)
   const thumbPreview = document.createElement('div');
   thumbPreview.style = `
     position: absolute;
