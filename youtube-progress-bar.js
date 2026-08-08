@@ -3,7 +3,7 @@
 // @encoding     utf-8
 // @namespace    https://github.com/inmani9
 // @downloadURL  https://raw.githubusercontent.com/inmani9/userscript/main/youtube-progress-bar.js
-// @version      1.0
+// @version      1.1
 // @author       BJ
 // @match        https://www.youtube.com/*
 
@@ -23,7 +23,7 @@
 
   // 1. 진행바 및 툴팁 생성
   const bar = document.createElement('div');
-  bar.style = `
+  bar.style.cssText = `
     position: relative;
     width: auto;
     height: 6px;
@@ -35,7 +35,7 @@
   `;
 
   const tooltip = document.createElement('div');
-  tooltip.style = `
+  tooltip.style.cssText = `
     position: absolute;
     bottom: 12px;
     transform: translateX(-50%);
@@ -53,13 +53,13 @@
   bar.appendChild(tooltip);
 
   const progress = document.createElement('div');
-  progress.style = 'width: 0%; height: 100%; background-color: #ffff00;';
+  progress.style.cssText = 'width: 0%; height: 100%; background-color: #ffff00;';
   bar.appendChild(progress);
 
   // 2. 썸네일 버튼 생성
   const thumbIcon = document.createElement('div');
   thumbIcon.textContent = '🖼️ 썸네일';
-  thumbIcon.style = `
+  thumbIcon.style.cssText = `
     display: inline-flex;
     align-items: center;
     cursor: pointer;
@@ -78,7 +78,7 @@
   `;
 
   const thumbPreview = document.createElement('div');
-  thumbPreview.style = `
+  thumbPreview.style.cssText = `
     position: absolute;
     top: 44px;
     left: 0;
@@ -98,7 +98,7 @@
   let cachedVideo = null;
   let isHoveringBar = false;
 
-  // 이벤트 핸들러 미리 등록 (중복 방지)
+  // 이벤트 핸들러 등록
   bar.onclick = function (e) {
     if (!cachedVideo) return;
     const rect = bar.getBoundingClientRect();
@@ -140,7 +140,7 @@
   // 3. 최적화된 감지 및 이벤트 연결
   let lastVideoElement = null;
 
-  (new MutationObserver(() => {
+  const observer = new MutationObserver(() => {
     if (document.location.pathname != '/watch') return;
     
     const player = document.querySelector('#ytd-player');
@@ -149,7 +149,6 @@
 
     if (!player || !video) return;
 
-    // 비디오 요소가 바뀌었을 때만 이벤트 리스너 재장착
     if (video !== lastVideoElement) {
       lastVideoElement = video;
       cachedVideo = video;
@@ -157,26 +156,24 @@
       video.addEventListener('timeupdate', () => {
         if (!cachedVideo || isNaN(cachedVideo.duration)) return;
         
-        // 진행바 너비 갱신
         progress.style.width = (cachedVideo.currentTime / cachedVideo.duration) * 100 + '%';
         
-        // 호버 중일 때만 시간 텍스트 갱신 (불필요한 연산 차단)
         if (isHoveringBar) {
           tooltip.textContent = `${formatTime(cachedVideo.currentTime)} / ${formatTime(cachedVideo.duration)}`;
         }
       }, { passive: true });
     }
 
-    // UI 요소 삽입
     if (!player.contains(bar)) {
       player.appendChild(bar);
     }
 
     if (subscribeButton && !subscribeButton.contains(thumbIcon)) {
       subscribeButton.style.display = 'flex';
-      subscribeButton.style.alignItems: 'center';
+      subscribeButton.style.alignItems = 'center';
       subscribeButton.appendChild(thumbIcon);
     }
+  });
 
-  })).observe(document.getElementById('content') || document.body, { childList: true, subtree: true });
+  observer.observe(document.body, { childList: true, subtree: true });
 })();
