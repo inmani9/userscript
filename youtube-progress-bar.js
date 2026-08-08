@@ -3,12 +3,12 @@
 // @encoding     utf-8
 // @namespace    https://github.com/inmani9
 // @downloadURL  https://raw.githubusercontent.com/inmani9/userscript/main/youtube-progress-bar.js
-// @version      0.8
+// @version      0.9
 // @author       BJ
 // @match        https://www.youtube.com/*
 
-// @description       Show progress bar below Youtube video player with hover current time and thumbnail preview
-// @description:ko    유튜브 플레이어 아래쪽에 진행바와 현재 재생 시간, 썸네일 미리보기 기능을 추가합니다.
+// @description       Show progress bar below Youtube video player with real-time hover time and thumbnail preview
+// @description:ko    유튜브 플레이어 아래쪽에 진행바와 실시간 갱신되는 재생 시간, 썸네일 미리보기 기능을 추가합니다.
 // ==/UserScript==
 
 (async function() {
@@ -22,7 +22,7 @@
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   }
 
-  // 1. 진행바 및 현재 시간 툴팁 생성
+  // 1. 진행바 및 실시간 시간 툴팁 생성
   const bar = document.createElement('div');
   bar.style = `
     position: relative;
@@ -35,7 +35,6 @@
     cursor: pointer;
   `;
 
-  // 툴팁 글자 크기 확대 및 스타일 조정
   const tooltip = document.createElement('div');
   tooltip.style = `
     position: absolute;
@@ -62,31 +61,25 @@
     video.currentTime = (mouseX / bar.offsetWidth) * video.duration;
   };
 
-  // 마우스를 올리는 동안 현재 재생 시간을 실시간으로 표시
+  let isHoveringBar = false;
+
   bar.addEventListener('mouseenter', function () {
+    isHoveringBar = true;
     const video = document.querySelector('#movie_player video');
     if (video === null) return;
-
-    const rect = bar.getBoundingClientRect();
-    // 마우스가 위치한 곳의 X 좌표를 기준으로 툴팁 위치 설정
-    bar.onmousemove = function(e) {
-      let mouseX = e.clientX - rect.left;
-      tooltip.style.left = `${mouseX}px`;
-    };
 
     tooltip.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
     tooltip.style.display = 'block';
   });
 
-  // 비디오가 재생 중일 때 호버 상태라면 현재 시간 갱신
-  bar.addEventListener('mousemove', function () {
-    const video = document.querySelector('#movie_player video');
-    if (video === null) return;
-    tooltip.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
+  bar.addEventListener('mousemove', function (e) {
+    const rect = bar.getBoundingClientRect();
+    let mouseX = e.clientX - rect.left;
+    tooltip.style.left = `${mouseX}px`;
   });
 
   bar.addEventListener('mouseleave', function () {
-    bar.onmousemove = null;
+    isHoveringBar = false;
     tooltip.style.display = 'none';
   });
 
@@ -94,7 +87,7 @@
   progress.style = 'width: 0%; height: 100%; background-color: #ffff00; transition: all 0.1s;';
   bar.appendChild(progress);
 
-  // 2. 썸네일 버튼 텍스트 축소 (아이콘 + 간결한 텍스트)
+  // 2. 버튼 영역에만 마우스를 올렸을 때 썸네일 미리보기가 뜨도록 수정
   const thumbIcon = document.createElement('div');
   thumbIcon.textContent = '🖼️ 썸네일';
   thumbIcon.style = `
@@ -169,6 +162,11 @@
     video.addEventListener('timeupdate', () => {
       if (video.duration) {
         progress.style.width = (video.currentTime / video.duration) * 100 + '%';
+        
+        // 진행바 위에 마우스를 올린 상태라면 비디오가 재생됨에 따라 툴팁 시간도 실시간 갱신
+        if (isHoveringBar) {
+          tooltip.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
+        }
       }
     }, { passive: true });
 
