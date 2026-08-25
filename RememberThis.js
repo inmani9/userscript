@@ -1,12 +1,14 @@
 // ==UserScript==
 // @name         RememberTitles
-// @version      1.5
+// @version      1.6
 // @description  Remember media titles and mark them
 // @match        https://sukebei.nyaa.si/*
 // @match        https://supjav.com/ja/*
 // @include      /^https://missav\.[^/]*?/.*?$/
 // @match        https://enterjoy.day/*
 // @match        https://tcafe21.com/*
+// @match        https://chating.wiki/*
+// @match        https://lamu.club/bbs/*
 // @grant        GM_addStyle
 // @grant        GM.setValue
 // @grant        GM.getValue
@@ -36,6 +38,8 @@
     {'help': '복사', 'icon': 'copy'},
     {'help': '소유중', 'icon': 'check-lg', 'point': 2, 'color': '#305CDE'},
     {'help': '고민중', 'icon': 'question-lg', 'point': 1, 'color': '#5CDE30'},
+    //{'help': '삭제', 'icon': 'remove'},
+    //{'help': '싫어요', 'icon': 'bad', 'point': 0, 'color': '#DE305C'},
   ];
 
   let hideTimer = null;
@@ -123,8 +127,25 @@
       menu.forEach((item) => {
         let button = document.createElement('button');
         button.setAttribute('data-info', item.help);
-        let icon = document.createElement('i');
-        icon.className = `bi bi-${item.icon}`;
+        // 인라인 SVG 아이콘 삽입
+        let icon = document.createElement('span');
+        icon.className = 'menu-svg-icon';
+        if (_iconSVG[item.icon]) {
+          icon.innerHTML = _iconSVG[item.icon];
+          const svg = icon.querySelector('svg');
+          if (svg) svg.setAttribute('fill', 'currentColor');
+        } else {
+          icon.textContent = item.icon || '?';
+        }
+        // unified styling handled by CSS
+        // tag which icon this is for CSS targeting
+        icon.dataset.icon = item.icon;
+        icon.style.display = 'inline-flex';
+        icon.style.alignItems = 'center';
+        icon.style.justifyContent = 'center';
+        icon.style.width = '16px';
+        icon.style.height = '16px';
+        icon.style.margin = '0';
         button.appendChild(icon);
         if (item.help == '검색') {
           button.addEventListener('click', () => {
@@ -143,6 +164,19 @@
             const name = button.getAttribute('data-value');
             if (name != null) {
               await navigator.clipboard.writeText(name);
+              hidePopup();
+            }
+          });
+        } else if (item.help == '삭제') {
+          button.addEventListener('click', async () => {
+            const name = button.getAttribute('data-value');
+            if (name != null) {
+              if (fav_words[name] != null) {
+                delete fav_words[name];
+                await GM.setValue("fav_words", JSON.stringify(fav_words));
+                channel.postMessage({ type: 'UPDATE', words: fav_ver });
+                markAll();
+              }
               hidePopup();
             }
           });
@@ -181,14 +215,21 @@
   }
 
   // 팝업 메뉴 CSS 스타일 추가
+  // 외부 CDN을 불러오지 못하는 사이트가 있어, 아이콘을 인라인 SVG로 대체합니다.
   GM_addStyle(`
-    @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css");
     .fav-mark-icon {
-      padding: 1px;
-      margin-right: 3px;
-      background-color: skyblue;
-      color: white !important;
-      border: 1px solid yellow;
+      padding: 2px;
+      margin-right: 6px;
+      background: rgba(255,255,255,0.95);
+      color: #222 !important;
+      border: 1px solid rgba(0,0,0,0.18);
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.18), 0 1px 2px rgba(0,0,0,0.12);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      width: 22px;
+      height: 22px;
     }
     #custom-selection-popup {
         display: none;
@@ -235,6 +276,50 @@
     #custom-selection-popup button i {
       font-size: 1em;
     }
+    #custom-selection-popup button svg {
+      width: 16px;
+      height: 16px;
+      display: block;
+    }
+    /* unify menu icon container style */
+    #custom-selection-popup button span.menu-svg-icon {
+      background: rgba(255,255,255,0.95);
+      color: #222;
+      border: 1px solid rgba(0,0,0,0.12);
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.18), 0 1px 2px rgba(0,0,0,0.08);
+      width: 22px;
+      height: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      padding: 0;
+    }
+    /* accent backgrounds for specific icons */
+    #custom-selection-popup button span.menu-svg-icon[data-icon="check-lg"],
+    .fav-mark-icon[data-icon="check-lg"] {
+      background: #305CDE;
+      color: #fff !important;
+      border-color: rgba(0,0,0,0.16);
+    }
+    #custom-selection-popup button span.menu-svg-icon[data-icon="question-lg"],
+    .fav-mark-icon[data-icon="question-lg"] {
+      background: #5CDE30;
+      color: #fff !important;
+      border-color: rgba(0,0,0,0.12);
+    }
+    #custom-selection-popup button span.menu-svg-icon[data-icon="bad"],
+    .fav-mark-icon[data-icon="bad"] {
+      background: #DE305C;
+      color: #fff !important;
+      border-color: rgba(0,0,0,0.12);
+    }
+    #custom-selection-popup button span.menu-svg-icon[data-icon="remove"],
+    .fav-mark-icon[data-icon="remove"] {
+      background: #e6e6e6;
+      color: #222 !important;
+      border-color: rgba(0,0,0,0.12);
+    }
     #custom-selection-popup button:before {
       content: attr(data-info);
       visibility: hidden;
@@ -261,6 +346,16 @@
         visibility: visible;
     }
   `);
+
+  // 인라인 SVG 아이콘 모음 (필요한 아이콘만 정의)
+  const _iconSVG = {
+    'search': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M11.742 10.344a6 6 0 1 0-1.397 1.398l3.85 3.85 1.397-1.397-3.85-3.85zM6.5 11a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg>',
+    'copy': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M10 1.5H4a1 1 0 0 0-1 1V12h1V2.5h6V1.5zM9 0H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z"/></svg>',
+    'check-lg': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M13.485 1.929a1 1 0 0 1 0 1.414L7 9.828 4.515 7.343a1 1 0 1 1 1.414-1.414L7 7.999l5.071-5.07a1 1 0 0 1 1.414 0z"/></svg>',
+    'question-lg': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 4a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm.93 6.588c-.28.345-.72.612-1.43.612-.85 0-1.37-.44-1.37-1.02 0-.63.46-.98 1.06-1.35.6-.37 1.01-.66 1.01-1.42 0-.8-.64-1.27-1.45-1.27-.79 0-1.4.45-1.5 1.09l-.98-.22c.15-1.03 1.08-2.01 2.55-2.01 1.58 0 2.83.86 2.83 2.39 0 1.07-.58 1.66-1.12 1.99-.36.22-.64.31-.2.97z"/></svg>',
+    'remove': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M5.5 5.5v7a.5.5 0 0 0 1 0v-7a.5.5 0 0 0-1 0zM8 5.5v7a.5.5 0 0 0 1 0v-7a.5.5 0 0 0-1 0zM10.5 5.5v7a.5.5 0 0 0 1 0v-7a.5.5 0 0 0-1 0z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 1 1 0-2h3.5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1H14.5a1 1 0 0 1 1 1zM5.118 4L5 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L10.882 4H5.118z"/></svg>',
+    'bad': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M6.956 1.745C7.021.81 7.908.5 8.6.9L13 3.5c.6.4.6 1.2.3 1.9l-2.5 4a2 2 0 0 1-1.6 1H8v4.5a1.5 1.5 0 0 1-1.5 1.5H6a1 1 0 0 1-1-1V6.5L2.03 6.11A1 1 0 0 1 1 5.14L1.3 3.5A1 1 0 0 1 2.3 2.7L6.956 1.745z"/></svg>'
+  };
 
   function isVisible(element) {
     const rect = element.getBoundingClientRect();
@@ -340,22 +435,38 @@
   }
 
   function attachIcon(item, name) {
-    let icon = document.createElement('i');
-    icon.setAttribute('mark-title', name);
-    icon.setAttribute('mark-point', item.point);
-    icon.className = `fav-mark-icon bi bi-${item.icon}`;
-    if (item.color != null) {
-      icon.style.setProperty("background-color", item.color, "important");
+    const wrapper = document.createElement('span');
+    wrapper.setAttribute('mark-title', name);
+    wrapper.setAttribute('mark-point', item.point);
+    wrapper.dataset.icon = item.icon;
+    wrapper.className = 'fav-mark-icon';
+    // insert inline SVG if available
+    if (_iconSVG[item.icon]) {
+      wrapper.innerHTML = _iconSVG[item.icon];
+    } else {
+      wrapper.textContent = item.icon || '?';
     }
-    return icon;
+    if (item.color != null) {
+      // color handled via CSS; ignore per-item color
+    }
+    // ensure svg uses currentColor so color can be controlled
+    const svg = wrapper.querySelector('svg');
+    if (svg) svg.setAttribute('fill', 'currentColor');
+    return wrapper;
   }
 
   function changeIcon(icon, item) {
     icon.setAttribute('mark-point', item.point);
-    icon.className = `fav-mark-icon bi bi-${item.icon}`;
-    if (item.color != null) {
-      icon.style.setProperty("background-color", item.color, "important");
+    // replace svg or text
+    if (_iconSVG[item.icon]) {
+      icon.innerHTML = _iconSVG[item.icon];
+    } else {
+      icon.textContent = item.icon || '?';
     }
+    // ensure data-icon is set so CSS can target it
+    try { icon.dataset.icon = item.icon; } catch(e) {}
+    const svg = icon.querySelector('svg');
+    if (svg) svg.setAttribute('fill', 'currentColor');
   }
 
   function hierachy(element) {
@@ -374,7 +485,7 @@
 
   function sign(parent = document.body) {
     [...parent.children].forEach(element => {
-      const f_tags = ['A', 'H1', 'H2', 'H3'];
+      const f_tags = ['A', 'H1', 'H2', 'H3', 'STRONG'];
       if (f_tags.includes(element.tagName) && element.innerText.trim().length > 0) {
         const firstChild = element.firstChild;
         if (firstChild.nodeType == Node.ELEMENT_NODE && firstChild.getAttribute('mark-title') != null) {
@@ -589,5 +700,33 @@
       hidePopup(100);
     }
   });
+
+  // Dynamic update helper: observe DOM changes and rerun marking (debounced)
+  (function() {
+    let moTimer = null;
+    const mo = new MutationObserver(() => {
+      clearTimeout(moTimer);
+      moTimer = setTimeout(() => {
+        try { markAll(); } catch(e){ console.error('[RemT] markAll err', e); }
+      }, 200);
+    });
+    function ensureObserver() {
+      try {
+        if (document.body) {
+          mo.observe(document.body, { childList: true, subtree: true });
+        } else {
+          window.addEventListener('load', () => {
+            mo.observe(document.body, { childList: true, subtree: true });
+          }, { once: true });
+        }
+      } catch(e) { console.error('[RemT] observer err', e); }
+    }
+    // Run a safe mark after load and when fonts are ready
+    window.addEventListener('load', () => { setTimeout(markAll, 300); });
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => setTimeout(markAll, 50)).catch(()=>{});
+    }
+    ensureObserver();
+  })();
 
 })();
