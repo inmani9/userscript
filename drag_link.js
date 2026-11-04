@@ -3,8 +3,9 @@
 // @encoding    utf-8
 // @namespace   https://github.com/inmani9
 // @downloadURL https://raw.githubusercontent.com/inmani9/userscript/main/drag_link.js
-// @version     1.1.4
+// @version     1.1.5
 // @author      BJ
+// @match        *://*/*
 // @description     Open link based on drag
 // @description:ko  드래그하는 링크를 새 탭으로 여는 스트립트
 // @grant       GM_openInTab
@@ -83,7 +84,7 @@
 
     while (element && element !== document.body && element.tagName) {
       const tagName = element.tagName.toUpperCase();
-      
+
       if (tagName === 'A') {
         found_link_url = element.href;
       } else if (tagName === 'IMG') {
@@ -97,11 +98,11 @@
           break;
         }
       }
-      
+
       if (found_link_url || found_img_url) dragging = true;
-      
+
       // 링크를 찾았으면 더 위로 올라가지 않고 종료
-      if (found_link_url) break; 
+      if (found_link_url) break;
       element = element.parentNode;
     }
 
