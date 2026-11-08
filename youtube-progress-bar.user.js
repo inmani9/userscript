@@ -2,7 +2,7 @@
 // @name         Progress bar for Youtube player
 // @encoding     utf-8
 // @namespace    https://github.com/inmani9
-// @downloadURL  https://raw.githubusercontent.com/inmani9/userscript/main/youtube-progress-bar.js
+// @downloadURL  https://raw.githubusercontent.com/inmani9/userscript/main/youtube-progress-bar.user.js
 // @version      1.1
 // @author       BJ
 // @match        https://www.youtube.com/*
