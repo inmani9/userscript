@@ -2,7 +2,7 @@
 // @name        Open link using dragging
 // @encoding    utf-8
 // @namespace   https://github.com/inmani9
-// @downloadURL https://raw.githubusercontent.com/inmani9/userscript/main/drag_link.js
+// @downloadURL https://raw.githubusercontent.com/inmani9/userscript/main/drag_link.user.js
 // @version     1.1.5
 // @author      BJ
 // @match        *://*/*
