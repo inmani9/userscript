@@ -3,7 +3,7 @@
 // @encoding    utf-8
 // @namespace   https://github.com/inmani9
 // @downloadURL https://raw.githubusercontent.com/inmani9/userscript/main/drag_link.user.js
-// @version     1.1.6
+// @version     1.1.7
 // @author      BJ
 // @match        *://*/*
 // @description     Open link based on drag
@@ -56,9 +56,12 @@
       mouse_dragging = false;
       find_element_at(e.target, true);
     }
-    if (dragging && !native_drag &&
-        (Math.abs(e.clientX - startX) > 4 || Math.abs(e.clientY - startY) > 4)) {
-      show_drag_indicator(e);
+    if (dragging && !native_drag) {
+      if (is_action_distance(e)) {
+        show_drag_indicator(e);
+      } else {
+        hide_drag_indicator();
+      }
     }
   });
   document.addEventListener('drop', (e) => { if (dragging) clear(); });
@@ -174,6 +177,10 @@
     if (drag_indicator) drag_indicator.style.display = 'none';
   }
 
+  function is_action_distance(e) {
+    return Math.abs(e.clientX - startX) > 40 || Math.abs(e.clientY - startY) > 40;
+  }
+
   function set_native_drag_image(e) {
     if (!e.dataTransfer || typeof e.dataTransfer.setDragImage !== 'function') return;
 
@@ -196,7 +203,17 @@
     context.textAlign = 'center';
     context.textBaseline = 'middle';
     context.fillText(label, 60, 18, 108);
-    e.dataTransfer.setDragImage(canvas, 10, 10);
+    canvas.style.position = 'fixed';
+    canvas.style.left = '0';
+    canvas.style.top = '0';
+    canvas.style.zIndex = '-1';
+    canvas.style.pointerEvents = 'none';
+    document.body.appendChild(canvas);
+    try {
+      e.dataTransfer.setDragImage(canvas, 10, 10);
+    } finally {
+      canvas.remove();
+    }
     native_drag = true;
   }
 
@@ -207,7 +224,7 @@
     const deltaX = e.clientX - startX;
     const deltaY = e.clientY - startY;
 
-    if (Math.abs(deltaX) > 40 || Math.abs(deltaY) > 40) {
+    if (is_action_distance(e)) {
       let target_url = null;
 
       // 좌상단 영역만 이미지 우선, 그 외 방향은 링크 우선
