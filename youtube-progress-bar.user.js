@@ -3,7 +3,7 @@
 // @encoding     utf-8
 // @namespace    https://github.com/inmani9
 // @downloadURL  https://raw.githubusercontent.com/inmani9/userscript/main/youtube-progress-bar.user.js
-// @version      1.2
+// @version      1.2.1
 // @author       BJ
 // @match        https://www.youtube.com/*
 
@@ -97,16 +97,20 @@
 
   const playlistOrderButton = document.createElement('button');
   playlistOrderButton.type = 'button';
-  playlistOrderButton.textContent = '재생 순서 반전';
+  playlistOrderButton.textContent = '⇅';
+  playlistOrderButton.setAttribute('aria-label', '재생목록 순서 반전');
   playlistOrderButton.title = '재생목록의 재생 순서와 화면 표시 순서를 반전합니다';
+  playlistOrderButton.className = 'ytSpecButtonShapeNextHost ytSpecButtonShapeNextText ytSpecButtonShapeNextMono ytSpecButtonShapeNextSizeM ytSpecButtonShapeNextIconOnlyDefault ytSpecButtonShapeNextEnableBackdropFilterExperiment ytSpecButtonShapeNextMainstageIconSize ytSpecButtonShapeNextMainstagePadding';
   playlistOrderButton.style.cssText = `
-    margin: 0 8px;
-    padding: 6px 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
     border: 0;
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--yt-spec-text-primary);
-    font: inherit;
+    background: transparent;
+    color: inherit;
+    font: 24px/1 Arial, sans-serif;
     cursor: pointer;
   `;
 
@@ -168,7 +172,7 @@
       reversePlaybackQueue(player);
       reversePlaylistDisplay(itemsContainer);
       isPlaylistReversed = !isPlaylistReversed;
-      playlistOrderButton.textContent = isPlaylistReversed ? '원래 순서로' : '재생 순서 반전';
+      playlistOrderButton.setAttribute('aria-label', isPlaylistReversed ? '재생목록 원래 순서로 변경' : '재생목록 순서 반전');
       playlistOrderButton.title = isPlaylistReversed
         ? '재생목록이 역순입니다. 클릭하면 원래 순서로 돌아갑니다'
         : '재생목록의 재생 순서와 화면 표시 순서를 반전합니다';
@@ -226,8 +230,6 @@
     const player = document.querySelector('#ytd-player');
     const video = document.querySelector('#movie_player video');
     const subscribeButton = document.querySelector('ytd-watch-metadata #owner #subscribe-button');
-    const playlistPanel = document.querySelector('ytd-playlist-panel-renderer');
-    const playlistHeader = playlistPanel?.querySelector('#header');
 
     if (!player || !video) return;
 
@@ -256,8 +258,15 @@
       subscribeButton.appendChild(thumbIcon);
     }
 
-    if (playlistHeader && !playlistHeader.contains(playlistOrderButton)) {
-      playlistHeader.appendChild(playlistOrderButton);
+    const playlistControls = document.querySelector('#top-level-buttons-computed');
+    const shuffleControl = playlistControls?.querySelector('ytd-toggle-button-renderer button[aria-label="재생목록 셔플"]');
+    if (playlistControls && !playlistOrderButton.isConnected) {
+      const shuffleRenderer = shuffleControl?.closest('ytd-toggle-button-renderer');
+      if (shuffleRenderer) {
+        shuffleRenderer.insertAdjacentElement('afterend', playlistOrderButton);
+      } else {
+        playlistControls.appendChild(playlistOrderButton);
+      }
     }
   });
 
