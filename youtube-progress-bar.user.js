@@ -3,12 +3,12 @@
 // @encoding     utf-8
 // @namespace    https://github.com/inmani9
 // @downloadURL  https://raw.githubusercontent.com/inmani9/userscript/main/youtube-progress-bar.user.js
-// @version      1.2.1
+// @version      1.3
 // @author       BJ
 // @match        https://www.youtube.com/*
 
-// @description       Show a progress bar, thumbnail preview, and playlist order toggle
-// @description:ko    유튜브 플레이어에 진행바와 썸네일 미리보기를 추가하고 재생목록 순서를 바꿉니다.
+// @description       Show progress bar below Youtube video player with optimized performance
+// @description:ko    유튜브 플레이어 아래쪽에 성능이 최적화된 진행바와 썸네일 미리보기 기능을 추가합니다.
 // ==/UserScript==
 
 (async function() {
@@ -95,92 +95,8 @@
   `;
   thumbIcon.appendChild(thumbPreview);
 
-  const playlistOrderButton = document.createElement('button');
-  playlistOrderButton.type = 'button';
-  playlistOrderButton.textContent = '⇅';
-  playlistOrderButton.setAttribute('aria-label', '재생목록 순서 반전');
-  playlistOrderButton.title = '재생목록의 재생 순서와 화면 표시 순서를 반전합니다';
-  playlistOrderButton.className = 'ytSpecButtonShapeNextHost ytSpecButtonShapeNextText ytSpecButtonShapeNextMono ytSpecButtonShapeNextSizeM ytSpecButtonShapeNextIconOnlyDefault ytSpecButtonShapeNextEnableBackdropFilterExperiment ytSpecButtonShapeNextMainstageIconSize ytSpecButtonShapeNextMainstagePadding';
-  playlistOrderButton.style.cssText = `
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: inherit;
-    font: 24px/1 Arial, sans-serif;
-    cursor: pointer;
-  `;
-
   let cachedVideo = null;
   let isHoveringBar = false;
-  let isPlaylistReversed = false;
-
-  function getPlaylistItems(container) {
-    return Array.from(container.querySelectorAll('ytd-playlist-panel-video-renderer'));
-  }
-
-  function reversePlaylistDisplay(container) {
-    const items = getPlaylistItems(container).reverse();
-    items.forEach(item => container.appendChild(item));
-  }
-
-  function reversePlaybackQueue(player) {
-    if (typeof player.getPlaylist !== 'function') {
-      throw new Error('YouTube player does not expose its playlist');
-    }
-
-    const playlist = player.getPlaylist();
-    if (!Array.isArray(playlist) || playlist.length < 2) {
-      throw new Error('No playlist with at least two videos is available');
-    }
-
-    const currentIndex = player.getPlaylistIndex();
-    if (!Number.isInteger(currentIndex) || currentIndex < 0 || currentIndex >= playlist.length) {
-      throw new Error('The current video is not in the playlist');
-    }
-
-    const reversedPlaylist = playlist.slice().reverse();
-    const reversedIndex = playlist.length - 1 - currentIndex;
-    const currentTime = typeof player.getCurrentTime === 'function'
-      ? player.getCurrentTime()
-      : cachedVideo?.currentTime || 0;
-    const isPaused = typeof player.getPlayerState === 'function' && player.getPlayerState() === 2;
-    const queueMethod = isPaused ? player.cuePlaylist : player.loadPlaylist;
-
-    if (typeof queueMethod !== 'function') {
-      throw new Error(`YouTube player cannot ${isPaused ? 'cue' : 'load'} a playlist`);
-    }
-
-    queueMethod.call(player, reversedPlaylist, reversedIndex, currentTime);
-  }
-
-  playlistOrderButton.addEventListener('click', () => {
-    const player = document.querySelector('#movie_player');
-    const playlistPanel = document.querySelector('ytd-playlist-panel-renderer');
-    const itemsContainer = playlistPanel?.querySelector('#items');
-
-    if (!player || !itemsContainer || getPlaylistItems(itemsContainer).length < 2) {
-      console.error('Unable to reverse playlist: playlist panel or videos are unavailable');
-      playlistOrderButton.title = '재생목록을 찾을 수 없습니다';
-      return;
-    }
-
-    try {
-      reversePlaybackQueue(player);
-      reversePlaylistDisplay(itemsContainer);
-      isPlaylistReversed = !isPlaylistReversed;
-      playlistOrderButton.setAttribute('aria-label', isPlaylistReversed ? '재생목록 원래 순서로 변경' : '재생목록 순서 반전');
-      playlistOrderButton.title = isPlaylistReversed
-        ? '재생목록이 역순입니다. 클릭하면 원래 순서로 돌아갑니다'
-        : '재생목록의 재생 순서와 화면 표시 순서를 반전합니다';
-    } catch (error) {
-      console.error('Unable to reverse playlist:', error);
-      playlistOrderButton.title = `순서를 변경하지 못했습니다: ${error.message}`;
-    }
-  });
 
   // 이벤트 핸들러 등록
   bar.onclick = function (e) {
@@ -256,17 +172,6 @@
       subscribeButton.style.display = 'flex';
       subscribeButton.style.alignItems = 'center';
       subscribeButton.appendChild(thumbIcon);
-    }
-
-    const playlistControls = document.querySelector('#top-level-buttons-computed');
-    const shuffleControl = playlistControls?.querySelector('ytd-toggle-button-renderer button[aria-label="재생목록 셔플"]');
-    if (playlistControls && !playlistOrderButton.isConnected) {
-      const shuffleRenderer = shuffleControl?.closest('ytd-toggle-button-renderer');
-      if (shuffleRenderer) {
-        shuffleRenderer.insertAdjacentElement('afterend', playlistOrderButton);
-      } else {
-        playlistControls.appendChild(playlistOrderButton);
-      }
     }
   });
 
